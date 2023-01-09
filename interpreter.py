@@ -1,3 +1,7 @@
+from typing import IO
+
+
+
 # The keys are the op code (Delta_I, Delta_w)
 # The values are tuples containing:
 #   - str: the opcode name
@@ -26,16 +30,32 @@ OPCODES: dict[tuple[int, int], tuple[str, bool, int]] = {
 
 
 class Interpreter:
-    def __init__(self) -> None:
-        # TODO ajouter des fichiers
+    def __init__(self, file_in: IO, file_out: IO, **kwargs) -> None:
         self.stack: list[int] = []
         self.zero_flag: bool = True
+        self.file_in = file_in
+        self.file_out = file_out
+
+
+
+    def _print(self, char: int) -> None:
+        """Print the provided character to the file_out stream, formatted according to the interpreter parameters."""
+        # TODO : mettre à jour
+        self.file_out.write(str(char))
+
+    def _input(self) -> int:
+        """Read one character from the file_in stream, formatted according to the interpreter parameters."""
+
+        # TODO : mettre à jour
+        return ord(self.file_in.read(1))
+
 
     def _delta_w_modulo_10(self, dw: int) -> int:
         """Compute sign(dw) * (abs(dw) % 10). E.g. 5 => 5, 28 => 28, -3 => -3, -13 => -3, 0 => 0"""
         if dw < 0:
             return -((-dw) % 10)
         return dw % 10
+
 
     def _deltas_to_assembly(self, deltas: list[tuple[int, int]]) -> list[str]:
         lines = []
