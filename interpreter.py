@@ -6,10 +6,12 @@
 OPCODES: dict[tuple[int, int], tuple[str, bool, int]] = {
     (-1, 1): ('print', True, 1),
     (-1, -1): ('read', True, 1),
-    (-1, 2): ('copy', True, 1),
+    (-1, 2): ('copy', True, 2),
   # (-1, -2): # Unused for now
     (-1, 3): ('jmpz', True, 1),
-    (-1,- 3): ('jmpnz', True, 1),
+    (-1, -3): ('jmpnz', True, 1),
+    (-1, 4): ('place', True, 1),
+    (-1, -4): ('pick', True, 1),
 
     (1, 1): ('push', True, 0),
     (1, -1): ('pop', False, None),
@@ -19,6 +21,7 @@ OPCODES: dict[tuple[int, int], tuple[str, bool, int]] = {
     (1, -3): ('div', False, None),
     (1, 4): ('mod', False, None),
     (1, -4): ('pow', False, None),
+    (1, 5): ('abs', False, None)
 }
 
 
