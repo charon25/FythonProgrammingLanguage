@@ -2,7 +2,7 @@ import unittest
 
 from interpreter import Interpreter
 
-class TestPhi(unittest.TestCase):
+class TestDeltasToAssembly(unittest.TestCase):
 
     def test_delta_w_modulo(self):
         interpreter = Interpreter()
@@ -15,16 +15,16 @@ class TestPhi(unittest.TestCase):
     def test_opcodes_no_arguments(self):
         interpreter = Interpreter()
 
-        deltas = [(1, -1), (1, 2), (1, -2), (1, 3), (1, -3), (1, 4), (1, -4), (1, 5)]
-        expected = ['pop', 'add', 'sub', 'mul', 'div', 'mod', 'pow', 'abs']
+        deltas = [(1, 2), (1, -2), (1, 3), (1, -3), (1, 4), (1, -4), (1, 5)]
+        expected = ['add', 'sub', 'mul', 'div', 'mod', 'pow', 'abs']
 
         self.assertListEqual(interpreter._deltas_to_assembly(deltas), expected)
 
     def test_opcodes_arguments_always_2(self):
         interpreter = Interpreter()
 
-        deltas = [(-1, 1), (0, 2), (-1, -1), (0, 2), (-1, 2), (0, 2), (-1, 3), (0, 2), (-1, -3), (0, 2), (-1, 4), (0, 2), (-1, -4), (0, 2), (1, 1), (0, 2)]
-        expected = ['print 2', 'read 2', 'copy 2', 'jmpz 2', 'jmpnz 2', 'place 2', 'pick 2', 'push 2']
+        deltas = [(-1, 1), (0, 2), (-1, -1), (0, 2), (-1, 2), (0, 2), (-1, 3), (0, 2), (-1, -3), (0, 2), (-1, 4), (0, 2), (-1, -4), (0, 2), (1, 1), (0, 2), (1, -1), (0, 2)]
+        expected = ['print 2', 'read 2', 'copy 2', 'jmpz 2', 'jmpnz 2', 'place 2', 'pick 2', 'push 2', 'pop 2']
 
         self.assertListEqual(interpreter._deltas_to_assembly(deltas), expected)
 
@@ -40,7 +40,7 @@ class TestPhi(unittest.TestCase):
         interpreter = Interpreter()
 
         deltas = [(1, -11), (1, 52), (1, -32), (1, 773), (1, -23), (1, 44), (1, -33334)]
-        expected = ['pop', 'add', 'sub', 'mul', 'div', 'mod', 'pow']
+        expected = ['pop 1', 'add', 'sub', 'mul', 'div', 'mod', 'pow']
 
         self.assertListEqual(interpreter._deltas_to_assembly(deltas), expected)
 
@@ -55,8 +55,8 @@ class TestPhi(unittest.TestCase):
     def test_opcodes_default_values(self):
         interpreter = Interpreter()
 
-        deltas = [(-1, 1), (-1, -1), (-1, 2), (-1, 3), (-1, -3), (-1, 4), (-1, -4), (1, 1)]
-        expected = ['print 1', 'read 1', 'copy 2', 'jmpz 1', 'jmpnz 1', 'place 1', 'pick 1', 'push 0']
+        deltas = [(-1, 1), (-1, -1), (-1, 2), (-1, 3), (-1, -3), (-1, 4), (-1, -4), (1, 1), (1, -1)]
+        expected = ['print 1', 'read 1', 'copy 2', 'jmpz 1', 'jmpnz 1', 'place 1', 'pick 1', 'push 0', 'pop 1']
 
         self.assertListEqual(interpreter._deltas_to_assembly(deltas), expected)
 

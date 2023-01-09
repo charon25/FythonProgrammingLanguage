@@ -2,7 +2,7 @@ import unittest
 
 from interpreter import Interpreter
 
-class TestPhi(unittest.TestCase):
+class TestConstructNumbers(unittest.TestCase):
 
     def test_positive_numbers(self):
         interpreter = Interpreter()

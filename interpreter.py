@@ -20,7 +20,7 @@ OPCODES: dict[tuple[int, int], tuple[str, bool, int]] = {
     (-1, -4): ('pick', True, 1),
 
     (1, 1): ('push', True, 0),
-    (1, -1): ('pop', False, None),
+    (1, -1): ('pop', True, 1),
     (1, 2): ('add', False, None),
     (1, -2): ('sub', False, None),
     (1, 3): ('mul', False, None),
@@ -36,17 +36,17 @@ REGEX_INSTRUCTION_ARG = re.compile(r'^\s*([a-z]+)\s*(-?[0-9]+)')
 
 
 class Interpreter:
-    def __init__(self, file_in: IO = None, file_out: IO = None, **kwargs) -> None:
+    def __init__(self, file_out: IO = None, file_in: IO = None, **kwargs) -> None:
         self.stack: list[int] = []
         self.zero_flag: bool = True
-
-        self.file_in = file_in
-        if self.file_in is None:
-            self.file_in = sys.stdin
 
         self.file_out = file_out
         if self.file_out is None:
             self.file_out = sys.stdout
+
+        self.file_in = file_in
+        if self.file_in is None:
+            self.file_in = sys.stdin
 
 
 
@@ -59,7 +59,7 @@ class Interpreter:
         """Read one character from the file_in stream, formatted according to the interpreter parameters."""
 
         # TODO : mettre à jour
-        return ord(self.file_in.read(1))
+        return self.file_in.read(1)
 
 
     def _delta_w_modulo_10(self, dw: int) -> int:
@@ -122,26 +122,172 @@ class Interpreter:
 
 
 
-    def _parse_lines_to_instructions(self, lines: list[str]):
+    def _parse_lines_to_instructions(self, lines: list[str]) -> list[tuple[str, int]]:
+        """Return a list of tuples of the form (instruction, argument) based on the lines specified."""
+
         instructions: list[tuple[str, int]] = []
 
         for line in lines:
             if match := REGEX_INSTRUCTION_ARG.findall(line.lower()):
+                # match will be of the form [('push', 1)]
                 instructions.append((match[0][0], int(match[0][1])))
             elif match := REGEX_INSTRUCTION_NO_ARG.findall(line.lower()):
+                # match will be of the form [('add')]
                 instructions.append((match[0], None))
 
         return instructions
 
-    def execute(self, lines: list[str]) -> None:
+
+    def _execute(self, lines: list[str]) -> None:
         self.stack: list[int] = list()
         self.zero_flag: bool = True
-        
         instruction_pointer = 0
 
-        instructions = self._parse_instructions(lines)
+        instructions = self._parse_lines_to_instructions(lines)
 
-        # while instruction_pointer < len(lines):
+        #TODO : gestion quand pas assez d'éléments dans le stack
 
+        # The incrementation of the instruction pointer is at the bottom of the loop
+        while instruction_pointer < len(lines):
+            instruction, argument = instructions[instruction_pointer]
 
+            if instruction == 'print':
+                for _ in range(argument):
+                    self._print(self.stack.pop())
+                # Zero flag is assigned only if it printed something
+                if argument >= 1:
+                    self.zero_flag = (self.stack[-1] == 0)
+
+            elif instruction == 'read':
+                for _ in range(argument):
+                    self.stack.append(self._input())
+                # Zero flag is assigned only if it read something
+                if argument >= 1:
+                    self.zero_flag = (self.stack[-1] == 0)
+
+            elif instruction == 'copy':
+                self.stack.extend([self.stack.pop()] * argument)
+                # Zero flag is assigned only if it copied something
+                if argument >= 1:
+                    self.zero_flag = (self.stack[-1] == 0)
+
+            elif instruction == 'jmpz':
+                if self.zero_flag:
+                    # jmpz 0 go to the next instruction to avoid infinite loop on itself
+                    if argument == 0:
+                        argument = 1
+                    instruction_pointer += argument
+                    continue # Continue here so the instruction pointer is not incremented
+
+            elif instruction == 'jmpnz':
+                if not self.zero_flag:
+                    # jmpnz 0 go to the next instruction to avoid infinite loop on itself
+                    if argument == 0:
+                        argument = 1
+                    instruction_pointer += argument
+                    continue # Continue here so the instruction pointer is not incremented
+
+            elif instruction == 'place':
+                element = self.stack.pop()
+                # Zero flag is assigned by the moved element
+                self.zero_flag = (element == 0)
+
+                # The indexing is reversed compared to Python (L is length of stack) :
+                # arg = 0 corresponds to top of stack (index L of insert) ; arg = 1 corresponds to below top element (index L - 1 of insert)
+                # so index = L - arg
+                # arg = -1 corresponds to bottom of stack (index 0 of insert) ; arg = -2 corresponds to second-to-last element (index 1 of insert)
+                # so index = - (arg + 1)
+                if argument >= 0:
+                    index = len(self.stack) - argument
+                else:
+                    index = - argument - 1
+
+                self.stack.insert(index, element)
+
+            elif instruction == 'pick':
+                # The indexing is reversed compared to Python (L is length of stack) :
+                # arg = 0 corresponds to top of stack (index L - 1 of pop) ; arg = 1 corresponds to below top element (index L - 2 of pop)
+                # so index = L - (arg + 1)
+                # arg = -1 corresponds to bottom of stack (index 0 of pop) ; arg = -2 corresponds to second-to-last element (index 1 of pop)
+                # so index = - (arg + 1)
+                if argument >= 0:
+                    index = len(self.stack) - argument - 1
+                else:
+                    index = - argument - 1
+
+                self.stack.append(self.stack.pop(index))
+                # Zero flag is assigned by the moved element
+                self.zero_flag = (self.stack[-1] == 0)
+
+            elif instruction == 'push':
+                self.stack.append(argument)
+                # Zero flag is assigned by the pushed element
+                self.zero_flag = (self.stack[-1] == 0)
+
+            elif instruction == 'pop':
+                # l = l[:-n] removes the last n element from l if n > 0
+                if argument > 0:
+                    # Zero flag is assigned according to the last poped element, which is at index -arg
+                    self.zero_flag = (self.stack[-argument] == 0)
+                    self.stack = self.stack[:-argument]
+
+            elif instruction == 'add':
+                top, below = self.stack.pop(), self.stack.pop()
+                self.stack.append(below + top)
+                # For maths operation, zero flag is assigned according to the result
+                self.zero_flag = (self.stack[-1] == 0)
+
+            elif instruction == 'sub':
+                top, below = self.stack.pop(), self.stack.pop()
+                self.stack.append(below - top)
+                # For maths operation, zero flag is assigned according to the result
+                self.zero_flag = (self.stack[-1] == 0)
+
+            elif instruction == 'mul':
+                top, below = self.stack.pop(), self.stack.pop()
+                self.stack.append(below * top)
+                # For maths operation, zero flag is assigned according to the result
+                self.zero_flag = (self.stack[-1] == 0)
+
+            elif instruction == 'div':
+                top, below = self.stack.pop(), self.stack.pop()
+                if top == 0:
+                    pass # TODO division par 0
+                self.stack.append(below // top)
+                # For maths operation, zero flag is assigned according to the result
+                self.zero_flag = (self.stack[-1] == 0)
+
+            elif instruction == 'mod':
+                top, below = self.stack.pop(), self.stack.pop()
+                if top == 0:
+                    pass # TODO division par 0
+                self.stack.append(below % top)
+                # For maths operation, zero flag is assigned according to the result
+                self.zero_flag = (self.stack[-1] == 0)
+
+            elif instruction == 'pow':
+                top, below = self.stack.pop(), self.stack.pop()
+                if top >= 0:
+                    self.stack.append(below ** top)
+                else:
+                    if below > 1:
+                        self.stack.append(0)
+                    elif below == 1:
+                        self.stack.append(1)
+                    elif below == 0:
+                        pass # TODO division par 0
+                    else: # below < 0:
+                        self.stack.append(-1)
+                # For maths operation, zero flag is assigned according to the result
+                self.zero_flag = (self.stack[-1] == 0)
+
+            elif instruction == 'abs':
+                self.stack.append(abs(self.stack.pop()))
+                # For maths operation, zero flag is assigned according to the result
+                self.zero_flag = (self.stack[-1] == 0)
+
+            else:
+                pass #TODO gestion erreur
+
+            instruction_pointer += 1
 
