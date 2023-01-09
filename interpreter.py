@@ -1,3 +1,5 @@
+import re
+import sys
 from typing import IO
 
 
@@ -29,12 +31,22 @@ OPCODES: dict[tuple[int, int], tuple[str, bool, int]] = {
 }
 
 
+REGEX_INSTRUCTION_NO_ARG = re.compile(r'^\s*([a-z]+)')
+REGEX_INSTRUCTION_ARG = re.compile(r'^\s*([a-z]+)\s*(-?[0-9]+)')
+
+
 class Interpreter:
-    def __init__(self, file_in: IO, file_out: IO, **kwargs) -> None:
+    def __init__(self, file_in: IO = None, file_out: IO = None, **kwargs) -> None:
         self.stack: list[int] = []
         self.zero_flag: bool = True
+
         self.file_in = file_in
+        if self.file_in is None:
+            self.file_in = sys.stdin
+
         self.file_out = file_out
+        if self.file_out is None:
+            self.file_out = sys.stdout
 
 
 
@@ -110,5 +122,26 @@ class Interpreter:
 
 
 
+    def _parse_lines_to_instructions(self, lines: list[str]):
+        instructions: list[tuple[str, int]] = []
+
+        for line in lines:
+            if match := REGEX_INSTRUCTION_ARG.findall(line.lower()):
+                instructions.append((match[0][0], int(match[0][1])))
+            elif match := REGEX_INSTRUCTION_NO_ARG.findall(line.lower()):
+                instructions.append((match[0], None))
+
+        return instructions
+
     def execute(self, lines: list[str]) -> None:
-        pass
+        self.stack: list[int] = list()
+        self.zero_flag: bool = True
+        
+        instruction_pointer = 0
+
+        instructions = self._parse_instructions(lines)
+
+        # while instruction_pointer < len(lines):
+
+
+
