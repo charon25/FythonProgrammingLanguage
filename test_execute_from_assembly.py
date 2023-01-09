@@ -92,6 +92,34 @@ class TestExecuteFromAssembly(unittest.TestCase):
         self.assertListEqual(writer.values, [2, 5, 4, 100])
 
 
+    def test_execute_not_enough_elements(self):
+        def assertOK(interpreter: Interpreter, lines: list[str], final_stack: list[int], final_zero_flag: bool = None):
+            interpreter._execute(lines)
+            self.assertListEqual(interpreter.stack, final_stack)
+            if not final_zero_flag is None:
+                self.assertEqual(interpreter.zero_flag, final_zero_flag)
+
+        interpreter = Interpreter()
+
+        assertOK(interpreter, ['copy 4'], [0, 0, 0, 0])
+        assertOK(interpreter, ['place 2'], [0])
+        assertOK(interpreter, ['pick 3'], [0])
+        assertOK(interpreter, ['push 1', 'pop 2'], [], True)
+        assertOK(interpreter, ['push 2', 'add'], [2])
+        assertOK(interpreter, ['add'], [0])
+        assertOK(interpreter, ['push 2', 'sub'], [-2])
+        assertOK(interpreter, ['sub'], [0])
+        assertOK(interpreter, ['push 2', 'mul'], [0])
+        assertOK(interpreter, ['mul'], [0])
+        assertOK(interpreter, ['push 2', 'div'], [0])
+        assertOK(interpreter, ['div'], [0])
+        assertOK(interpreter, ['push 2', 'mod'], [0])
+        assertOK(interpreter, ['mod'], [0])
+        assertOK(interpreter, ['push 2', 'pow'], [1])
+        assertOK(interpreter, ['pow'], [1])
+        assertOK(interpreter, ['abs'], [0])
+
+
     def test_execute_fibonacci(self):
         class Reader:
             def __init__(self) -> None:
