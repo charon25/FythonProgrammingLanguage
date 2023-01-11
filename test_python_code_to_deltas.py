@@ -1,7 +1,7 @@
 import re
 import unittest
 
-from interpreter import Interpreter, PythonError
+from interpreter import Interpreter, PythonCodeError
 
 class TestPythonCodeToDeltas(unittest.TestCase):
 
@@ -51,13 +51,13 @@ class TestPythonCodeToDeltas(unittest.TestCase):
         code3 = '\n'.join(['if True:', '  a = 1', '       b = 1'])
         code4 = 'if = 1'
 
-        with self.assertRaises(PythonError):
+        with self.assertRaises(PythonCodeError):
             interpreter._python_code_to_deltas(code1)
-        with self.assertRaises(PythonError):
+        with self.assertRaises(PythonCodeError):
             interpreter._python_code_to_deltas(code2)
-        with self.assertRaises(PythonError):
+        with self.assertRaises(PythonCodeError):
             interpreter._python_code_to_deltas(code3)
-        with self.assertRaises(PythonError):
+        with self.assertRaises(PythonCodeError):
             interpreter._python_code_to_deltas(code4)
 
     def test_small_code(self):

@@ -40,7 +40,10 @@ REGEX_LITERAL_STR_SINGLE_QUOTES = re.compile(r"'(?:[^'\\\\]|\\\\[\\s\\S])*'")
 REGEX_COMMENT = re.compile(r'#[\s\S]*$')
 
 
-class PythonError(Exception):
+class PythonCodeError(Exception):
+    pass
+
+class FauxPythonDivisionByZero(Exception):
     pass
 
 
@@ -119,7 +122,7 @@ class Interpreter:
         try:
             ast.parse(code)
         except Exception:
-            raise PythonError
+            raise PythonCodeError("Invalid Python code")
 
         lines = code.splitlines()
         values: list[tuple[int, int]] = list()
@@ -373,7 +376,7 @@ class Interpreter:
                 else:
                     top, below = self.stack.pop(), self.stack.pop()
                 if top == 0:
-                    pass # TODO division par 0
+                    raise FauxPythonDivisionByZero("Division by zero")
                 self.stack.append(below // top)
                 # For maths operation, zero flag is assigned according to the result
                 self.zero_flag = (self.stack[-1] == 0)
@@ -387,7 +390,7 @@ class Interpreter:
                 else:
                     top, below = self.stack.pop(), self.stack.pop()
                 if top == 0:
-                    pass # TODO division par 0
+                    raise FauxPythonDivisionByZero("Modulo by zero")
                 self.stack.append(below % top)
                 # For maths operation, zero flag is assigned according to the result
                 self.zero_flag = (self.stack[-1] == 0)
@@ -408,7 +411,7 @@ class Interpreter:
                     elif below == 1:
                         self.stack.append(1)
                     elif below == 0:
-                        pass # TODO division par 0
+                        raise FauxPythonDivisionByZero("Zero to a negative power")
                     else: # below < 0:
                         self.stack.append(-1)
                 # For maths operation, zero flag is assigned according to the result

@@ -1,6 +1,6 @@
 import unittest
 
-from interpreter import Interpreter
+from interpreter import FauxPythonDivisionByZero, Interpreter
 
 class TestExecuteFromAssembly(unittest.TestCase):
 
@@ -91,7 +91,6 @@ class TestExecuteFromAssembly(unittest.TestCase):
         self.assertListEqual(interpreter.stack, [1, 3])
         self.assertListEqual(writer.values, [2, 5, 4, 100])
 
-
     def test_execute_not_enough_elements(self):
         def assertOK(interpreter: Interpreter, lines: list[str], final_stack: list[int], final_zero_flag: bool = None):
             interpreter._execute(lines)
@@ -118,6 +117,20 @@ class TestExecuteFromAssembly(unittest.TestCase):
         assertOK(interpreter, ['push 2', 'pow'], [1])
         assertOK(interpreter, ['pow'], [1])
         assertOK(interpreter, ['abs'], [0])
+
+    def test_division_by_zero(self):
+        interpreter = Interpreter()
+
+        lines1 = ['push 1', 'push 0', 'div']
+        lines2 = ['push 1', 'push 0', 'mod']
+        lines3 = ['push 0', 'push -1', 'pow']
+
+        with self.assertRaises(FauxPythonDivisionByZero):
+            interpreter._execute(lines1)
+        with self.assertRaises(FauxPythonDivisionByZero):
+            interpreter._execute(lines2)
+        with self.assertRaises(FauxPythonDivisionByZero):
+            interpreter._execute(lines3)
 
 
     def test_execute_fibonacci(self):
