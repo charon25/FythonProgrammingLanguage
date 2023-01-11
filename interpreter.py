@@ -1,3 +1,4 @@
+import ast
 import re
 import sys
 from typing import IO
@@ -33,6 +34,14 @@ OPCODES: dict[tuple[int, int], tuple[str, bool, int]] = {
 
 REGEX_INSTRUCTION_NO_ARG = re.compile(r'^\s*([a-z]+)')
 REGEX_INSTRUCTION_ARG = re.compile(r'^\s*([a-z]+)\s*(-?[0-9]+)')
+REGEX_INDENTATION = re.compile(r'^(\s*)')
+REGEX_LITERAL_STR_DOUBLE_QUOTES = re.compile(r'"(?:[^"\\\\]|\\\\[\\s\\S])*"')
+REGEX_LITERAL_STR_SINGLE_QUOTES = re.compile(r"'(?:[^'\\\\]|\\\\[\\s\\S])*'")
+REGEX_COMMENT = re.compile(r'#[\s\S]*$')
+
+
+class PythonError(Exception):
+    pass
 
 
 class Interpreter:
@@ -60,6 +69,80 @@ class Interpreter:
 
         # TODO : mettre à jour
         return self.file_in.read(1)
+
+
+    def _get_line_indentation_depth(self, line: str, last_length: int, current_depth: int) -> int:
+            indentation: str = REGEX_INDENTATION.findall(line)[0]
+            indentation_length = len(indentation.replace("\t", "    ")) # Replace every tab with 4 spaces so the len calculation is accurate
+
+            if indentation_length > last_length:
+                return (indentation_length, current_depth + 1)
+            elif indentation_length < last_length:
+                return (indentation_length, current_depth - 1)
+
+            return (indentation_length, current_depth)
+
+    def _get_all_matches_regex(self, pattern: re.Pattern, string: str) -> tuple[int, int]:
+        previous_end = 0
+        while match := pattern.search(string):
+            start, end = match.span()
+            yield (previous_end + start, previous_end + end)
+            string = string[end:]
+            previous_end += end
+
+
+    def _get_line_whitespace_count(self, line: str) -> int:
+        line = line.strip()
+        line_no_str_literal = line
+
+        # This will replace every string literal by a sequence of period the same length
+        # This allows to remove comments without affecting # symbols in strings
+        for start, end in self._get_all_matches_regex(REGEX_LITERAL_STR_DOUBLE_QUOTES, line_no_str_literal):
+            line_no_str_literal = f'{line_no_str_literal[:start]}{"." * (end - start)}{line_no_str_literal[end:]}'
+        for start, end in self._get_all_matches_regex(REGEX_LITERAL_STR_SINGLE_QUOTES, line_no_str_literal):
+            line_no_str_literal = f'{line_no_str_literal[:start]}{"." * (end - start)}{line_no_str_literal[end:]}'
+
+        # Find if there is a comment and if yes remove it
+        if match := REGEX_COMMENT.search(line_no_str_literal):
+            comment_start, _ = match.span()
+            line = line[:comment_start]
+        
+        line = line.strip()
+        
+        if line == '':
+            return None
+        
+        return len(line.split()) - 1
+
+
+    def _python_code_to_deltas(self, code: str) -> list[tuple[int, int]]:
+        try:
+            ast.parse(code)
+        except Exception:
+            raise PythonError
+
+        lines = code.splitlines()
+        values: list[tuple[int, int]] = list()
+
+        indentation_length = 0
+        indentation_depth = 0
+
+        for line in lines:
+            # Remove empty lines
+            if line.strip() == '':
+                continue
+
+            indentation_length, indentation_depth = self._get_line_indentation_depth(line, indentation_length, indentation_depth)
+            whitespace_count = self._get_line_whitespace_count(line)
+            # This means the line was only a comment, so remove it
+            if whitespace_count is None:
+                continue
+
+            values.append((indentation_depth, whitespace_count))
+
+        # This will take successive differences of each element in the tuples
+        return [(next_indent - indent, next_whitespace - whitespace) for (indent, whitespace), (next_indent, next_whitespace) in zip(values, values[1:])]
+
 
 
     def _delta_w_modulo_10(self, dw: int) -> int:
