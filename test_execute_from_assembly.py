@@ -1,6 +1,6 @@
 import unittest
 
-from interpreter import FauxPythonDivisionByZero, Interpreter
+from interpreter import FauxPythonAssemblyError, FauxPythonDivisionByZero, Interpreter
 
 class TestExecuteFromAssembly(unittest.TestCase):
 
@@ -33,7 +33,7 @@ class TestExecuteFromAssembly(unittest.TestCase):
         interpreter = Interpreter()
 
         lines = ['push 1', 'push 3', 'add']
-        interpreter._execute(lines)
+        interpreter._execute_assembly(lines)
 
         self.assertListEqual(interpreter.stack, [4])
 
@@ -41,7 +41,7 @@ class TestExecuteFromAssembly(unittest.TestCase):
         interpreter = Interpreter()
 
         lines = ['push 1', 'push 2', 'push 3', 'push 4', 'push 5', 'push 6', 'push -7', 'abs', 'mul', 'add', 'sub', 'abs', 'push 10', 'mod', 'div', 'pow']
-        interpreter._execute(lines)
+        interpreter._execute_assembly(lines)
 
         self.assertListEqual(interpreter.stack, [1, 2])
 
@@ -49,7 +49,7 @@ class TestExecuteFromAssembly(unittest.TestCase):
         interpreter = Interpreter()
 
         lines = ['push 4', 'copy 2', 'push 5', 'copy 2', 'push 6', 'copy 3', 'place 3', 'place -1', 'pick 3', 'pick -2']
-        interpreter._execute(lines)
+        interpreter._execute_assembly(lines)
 
         self.assertListEqual(interpreter.stack, [6, 4, 6, 5, 6, 5, 4])
 
@@ -57,7 +57,7 @@ class TestExecuteFromAssembly(unittest.TestCase):
         interpreter = Interpreter()
 
         lines = ['push 5', 'jmpnz 2', 'push 1', 'push 0', 'jmpz 2', 'push 0', 'push 3']
-        interpreter._execute(lines)
+        interpreter._execute_assembly(lines)
 
         self.assertListEqual(interpreter.stack, [5, 0, 3])
 
@@ -65,7 +65,7 @@ class TestExecuteFromAssembly(unittest.TestCase):
         interpreter = Interpreter()
 
         lines = ['push 0', 'jmpnz 2', 'push 1', 'push 0', 'jmpz 2', 'push 0', 'push 3']
-        interpreter._execute(lines)
+        interpreter._execute_assembly(lines)
 
         self.assertListEqual(interpreter.stack, [0, 1, 0, 3])
 
@@ -86,14 +86,14 @@ class TestExecuteFromAssembly(unittest.TestCase):
         interpreter = Interpreter(writer, Reader())
 
         lines = ['read 2', 'print 1', 'read 3', 'print 2', 'push 100', 'print 1']
-        interpreter._execute(lines)
+        interpreter._execute_assembly(lines)
 
         self.assertListEqual(interpreter.stack, [1, 3])
         self.assertListEqual(writer.values, [2, 5, 4, 100])
 
     def test_execute_not_enough_elements(self):
         def assertOK(interpreter: Interpreter, lines: list[str], final_stack: list[int], final_zero_flag: bool = None):
-            interpreter._execute(lines)
+            interpreter._execute_assembly(lines)
             self.assertListEqual(interpreter.stack, final_stack)
             if not final_zero_flag is None:
                 self.assertEqual(interpreter.zero_flag, final_zero_flag)
@@ -126,11 +126,19 @@ class TestExecuteFromAssembly(unittest.TestCase):
         lines3 = ['push 0', 'push -1', 'pow']
 
         with self.assertRaises(FauxPythonDivisionByZero):
-            interpreter._execute(lines1)
+            interpreter._execute_assembly(lines1)
         with self.assertRaises(FauxPythonDivisionByZero):
-            interpreter._execute(lines2)
+            interpreter._execute_assembly(lines2)
         with self.assertRaises(FauxPythonDivisionByZero):
-            interpreter._execute(lines3)
+            interpreter._execute_assembly(lines3)
+
+    def test_nonexistent_instruction(self):
+        interpreter = Interpreter()
+
+        assembly = ['lol 12']
+
+        with self.assertRaises(FauxPythonAssemblyError):
+            interpreter._execute_assembly(assembly)
 
 
     def test_execute_fibonacci(self):
@@ -164,7 +172,7 @@ class TestExecuteFromAssembly(unittest.TestCase):
 
         for n in (-10, 0, 10, 100):
             reader.set_value(n)
-            interpreter._execute(lines)
+            interpreter._execute_assembly(lines)
             self.assertListEqual(writer.values, list(fibonacci(n)))
             writer.reset()
 

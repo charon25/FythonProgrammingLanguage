@@ -31,6 +31,11 @@ OPCODES: dict[tuple[int, int], tuple[str, bool, int]] = {
     (1, 5): ('abs', False, None)
 }
 
+# Build the inverse dictionary : the string instruction is the key, the tuple opcode is the value
+INVERSE_OPCODES: dict[str, tuple[int, int]] = {
+    instruction: opcode for opcode, (instruction, _, _) in OPCODES.items()
+}
+
 
 REGEX_INSTRUCTION_NO_ARG = re.compile(r'^\s*([a-z]+)')
 REGEX_INSTRUCTION_ARG = re.compile(r'^\s*([a-z]+)\s*(-?[0-9]+)')
@@ -44,6 +49,9 @@ class PythonCodeError(Exception):
     pass
 
 class FauxPythonDivisionByZero(Exception):
+    pass
+
+class FauxPythonAssemblyError(Exception):
     pass
 
 
@@ -167,7 +175,7 @@ class Interpreter:
                 name, need_number, default_number = OPCODES[opcode]
 
                 if need_number:
-                    number, offset = self._construct_number(deltas[index+1:], default_number)
+                    number, offset = self._construct_number_from_deltas(deltas[index+1:], default_number)
                     lines.append(f'{name} {number}')
                     index += offset
 
@@ -178,7 +186,7 @@ class Interpreter:
         return lines
 
 
-    def _construct_number(self, deltas: list[tuple[int, int]], default_number: int) -> tuple[int, int]:
+    def _construct_number_from_deltas(self, deltas: list[tuple[int, int]], default_number: int) -> tuple[int, int]:
         digits = []
         # The variable needs to be declared before hand
         # as if deltas is empty, it will not be declared by the for loop
@@ -208,6 +216,31 @@ class Interpreter:
 
 
 
+    def _assembly_to_deltas(self, lines: list[str]) -> list[tuple[int, int]]:
+        instructions = self._parse_lines_to_instructions(lines)
+        deltas: list[tuple[int, int]] = list()
+
+        for instruction, value in instructions:
+            if instruction not in INVERSE_OPCODES:
+                raise FauxPythonAssemblyError
+
+            deltas.append(INVERSE_OPCODES[instruction])
+            if value is not None:
+                deltas.extend(self._number_to_deltas(value))
+
+        return deltas
+
+
+    def _number_to_deltas(self, n: int) -> list[tuple[int, int]]:
+        if n == 0:
+            return [(0, 0)]
+        
+        prefix = [] if n > 0 else [(0, 0)]
+        digits = [(0, int(digit)) for digit in str(abs(n))]
+        return prefix + digits
+
+
+
     def _parse_lines_to_instructions(self, lines: list[str]) -> list[tuple[str, int]]:
         """Return a list of tuples of the form (instruction, argument) based on the lines specified."""
 
@@ -224,7 +257,7 @@ class Interpreter:
         return instructions
 
 
-    def _execute(self, lines: list[str]) -> None:
+    def _execute_assembly(self, lines: list[str]) -> None:
         self.stack: list[int] = list()
         self.zero_flag: bool = True
         instruction_pointer = 0
@@ -426,7 +459,7 @@ class Interpreter:
                 self.zero_flag = (self.stack[-1] == 0)
 
             else:
-                pass #TODO gestion erreur
+                raise FauxPythonAssemblyError
 
             instruction_pointer += 1
 
