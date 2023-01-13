@@ -69,7 +69,29 @@ class TestExecuteFromAssembly(unittest.TestCase):
 
         self.assertListEqual(stack, [0, 1, 0, 3])
 
-    def test_execute_io(self):
+    def test_execute_io_format_char(self):
+        class Reader:
+            def __init__(self) -> None:
+                self.i = 0
+            def read(self, _) -> int:
+                self.i += 1
+                return chr(self.i)
+        class Writer:
+            def __init__(self) -> None:
+                self.values = []
+            def write(self, value: str):
+                self.values.append(value)
+
+        writer = Writer()
+        interpreter = Interpreter(writer, Reader(), output_format='char')
+
+        lines = ['read 2', 'print 1', 'read 3', 'print 2', 'push 100', 'print 1']
+        stack, _ = interpreter._execute_assembly(lines)
+
+        self.assertListEqual(stack, [1, 3])
+        self.assertListEqual(writer.values, ['\x02', '\x05', '\x04', 'd'])
+
+    def test_execute_io_format_number(self):
         class Reader:
             def __init__(self) -> None:
                 self.i = 0
@@ -83,7 +105,7 @@ class TestExecuteFromAssembly(unittest.TestCase):
                 self.values.append(int(value))
 
         writer = Writer()
-        interpreter = Interpreter(writer, Reader())
+        interpreter = Interpreter(writer, Reader(), output_format='number')
 
         lines = ['read 2', 'print 1', 'read 3', 'print 2', 'push 100', 'print 1']
         stack, _ = interpreter._execute_assembly(lines)
@@ -166,7 +188,7 @@ class TestExecuteFromAssembly(unittest.TestCase):
 
         writer = Writer()
         reader = Reader()
-        interpreter = Interpreter(file_out=writer, file_in=reader)
+        interpreter = Interpreter(file_out=writer, file_in=reader, output_format='number')
 
         lines = ['read 1', 'push 1', 'add', 'push 0', 'push 1', 'pick -1', 'push 1', 'sub', 'copy 3', 'abs', 'add', 'pop 1', 'jmpz 7', 'place -1', 'copy 3', 'print 1', 'pick -2', 'add', 'jmpnz -13']
 

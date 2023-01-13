@@ -65,18 +65,31 @@ class Interpreter:
         if self.file_in is None:
             self.file_in = sys.stdin
 
+        self.output_format = kwargs.get('output_format', 'char')
 
 
-    def _print(self, char: int) -> None:
+
+    def _print(self, value: int) -> None:
         """Print the provided character to the file_out stream, formatted according to the interpreter parameters."""
-        # TODO : mettre à jour
-        self.file_out.write(str(char))
+
+        if self.output_format == 'char':
+            if 0 <= value < 0x110000:
+                self.file_out.write(chr(value))
+            else:
+                self.file_out.write('�')
+        elif self.output_format == 'number':
+            self.file_out.write(str(value))
 
     def _input(self) -> int:
-        """Read one character from the file_in stream, formatted according to the interpreter parameters."""
+        """Read one character from the file_in stream, formatted according to the interpreter parameters. If any error occurs, will return 0."""
 
-        # TODO : mettre à jour
-        return self.file_in.read(1)
+        if self.output_format == 'char':
+            try:
+                return ord(self.file_in.read(1))
+            except Exception:
+                return 0
+        elif self.output_format == 'number':
+            return self.file_in.read(1)
 
 
     def _get_line_indentation_depth(self, line: str, last_length: int, current_depth: int) -> int:
