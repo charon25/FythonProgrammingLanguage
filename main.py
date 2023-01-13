@@ -6,7 +6,7 @@ def read_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Interpreter of the Fython language.")
 
     parser.add_argument('input_path', help="Path to the interpreter input.", type=argparse.FileType('r', encoding='utf-8'))
-    parser.add_argument('output_path', nargs='?', help="Path to the interpreter output (if necessary).", type=argparse.FileType('w', encoding='utf-8'))
+    parser.add_argument('output_path', nargs='?', help="Path to the interpreter output if it was not executed. The file won't be used if it is.", type=argparse.FileType('w', encoding='utf-8'))
 
     parser.add_argument('--input-type', '-i', choices=['p', 'd', 'a'], default='p', help="Input type. 'p' for Fython code, 'd' for deltas list, 'a' for Fython assembly. Default 'p'.")
     parser.add_argument('--output-type', '-o', choices=['d', 'a', 'e'], default='e', help="Input type. 'd' for deltas list, 'a' for Fython assembly, 'e' for code execution. Default 'e'.")
