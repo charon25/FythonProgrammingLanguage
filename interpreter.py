@@ -57,9 +57,6 @@ class FauxPythonAssemblyError(Exception):
 
 class Interpreter:
     def __init__(self, file_out: IO = None, file_in: IO = None, **kwargs) -> None:
-        self.stack: list[int] = []
-        self.zero_flag: bool = True
-
         self.file_out = file_out
         if self.file_out is None:
             self.file_out = sys.stdout
@@ -257,9 +254,9 @@ class Interpreter:
         return instructions
 
 
-    def _execute_assembly(self, lines: list[str]) -> None:
-        self.stack: list[int] = list()
-        self.zero_flag: bool = True
+    def _execute_assembly(self, lines: list[str]) -> tuple[list[int], bool]:
+        stack: list[int] = list()
+        zero_flag: bool = True
         instruction_pointer = 0
 
         instructions = self._parse_lines_to_instructions(lines)
@@ -270,31 +267,31 @@ class Interpreter:
 
             if instruction == 'print':
                 for _ in range(argument):
-                    if self.stack: # Check the stack is not empty
-                        element = self.stack.pop()
+                    if stack: # Check the stack is not empty
+                        element = stack.pop()
                         self._print(element)
                         # Zero flag is assigned only if it printed something
-                        self.zero_flag = (element == 0)
+                        zero_flag = (element == 0)
 
             elif instruction == 'read':
                 for _ in range(argument):
-                    self.stack.append(self._input())
+                    stack.append(self._input())
                 # Zero flag is assigned only if it read something
                 if argument >= 1:
-                    self.zero_flag = (self.stack[-1] == 0)
+                    zero_flag = (stack[-1] == 0)
 
             elif instruction == 'copy':
                 # If the stack is empty, copy 0
-                if self.stack:
-                    self.stack.extend([self.stack.pop()] * argument)
+                if stack:
+                    stack.extend([stack.pop()] * argument)
                 else:
-                    self.stack = [0] * argument
+                    stack = [0] * argument
                 # Zero flag is assigned only if it copied something
                 if argument >= 1:
-                    self.zero_flag = (self.stack[-1] == 0)
+                    zero_flag = (stack[-1] == 0)
 
             elif instruction == 'jmpz':
-                if self.zero_flag:
+                if zero_flag:
                     # jmpz 0 go to the next instruction to avoid infinite loop on itself
                     if argument == 0:
                         argument = 1
@@ -302,7 +299,7 @@ class Interpreter:
                     continue # Continue here so the instruction pointer is not incremented
 
             elif instruction == 'jmpnz':
-                if not self.zero_flag:
+                if not zero_flag:
                     # jmpnz 0 go to the next instruction to avoid infinite loop on itself
                     if argument == 0:
                         argument = 1
@@ -310,10 +307,10 @@ class Interpreter:
                     continue # Continue here so the instruction pointer is not incremented
 
             elif instruction == 'place':
-                if self.stack:
-                    element = self.stack.pop()
+                if stack:
+                    element = stack.pop()
                     # Zero flag is assigned by the moved element
-                    self.zero_flag = (element == 0)
+                    zero_flag = (element == 0)
 
                     # The indexing is reversed compared to Python (L is length of stack) :
                     # arg = 0 corresponds to top of stack (index L of insert) ; arg = 1 corresponds to below top element (index L - 1 of insert)
@@ -321,145 +318,146 @@ class Interpreter:
                     # arg = -1 corresponds to bottom of stack (index 0 of insert) ; arg = -2 corresponds to second-to-last element (index 1 of insert)
                     # so index = - (arg + 1)
                     if argument >= 0:
-                        index = len(self.stack) - argument
+                        index = len(stack) - argument
                     else:
                         index = - argument - 1
 
-                    self.stack.insert(index, element)
+                    stack.insert(index, element)
                 else: # If the stack is empty, push a 0
-                    self.stack = [0]
+                    stack = [0]
 
             elif instruction == 'pick':
-                if self.stack:
+                if stack:
                     # The indexing is reversed compared to Python (L is length of stack) :
                     # arg = 0 corresponds to top of stack (index L - 1 of pop) ; arg = 1 corresponds to below top element (index L - 2 of pop)
                     # so index = L - (arg + 1)
                     # arg = -1 corresponds to bottom of stack (index 0 of pop) ; arg = -2 corresponds to second-to-last element (index 1 of pop)
                     # so index = - (arg + 1)
                     if argument >= 0:
-                        index = len(self.stack) - argument - 1
+                        index = len(stack) - argument - 1
                     else:
                         index = - argument - 1
 
-                    self.stack.append(self.stack.pop(index))
+                    stack.append(stack.pop(index))
                     # Zero flag is assigned by the moved element
-                    self.zero_flag = (self.stack[-1] == 0)
+                    zero_flag = (stack[-1] == 0)
                 else: # If the stack is empty, push a 0
-                    self.stack = [0]
+                    stack = [0]
 
             elif instruction == 'push':
-                self.stack.append(argument)
+                stack.append(argument)
                 # Zero flag is assigned by the pushed element
-                self.zero_flag = (self.stack[-1] == 0)
+                zero_flag = (stack[-1] == 0)
 
             elif instruction == 'pop':
                 # l = l[:-n] removes the last n element from l if n > 0
                 if argument > 0:
                     # If the stack have less or as much elements than should be popped, remove them all and raise the zero flag
-                    if len(self.stack) <= argument:
-                        self.stack = []
-                        self.zero_flag = True
+                    if len(stack) <= argument:
+                        stack = []
+                        zero_flag = True
                     else:
                         # Zero flag is assigned according to the last poped element, which is at index -arg
-                        self.zero_flag = (self.stack[-argument] == 0)
-                        self.stack = self.stack[:-argument]
+                        zero_flag = (stack[-argument] == 0)
+                        stack = stack[:-argument]
 
             elif instruction == 'add':
                 # Default values are 0, 0 (picked in this order is the stack does not have enough elements)
-                if len(self.stack) == 0:
+                if len(stack) == 0:
                     top, below = 0, 0
-                elif len(self.stack) == 1:
-                    top, below = self.stack.pop(), 0
+                elif len(stack) == 1:
+                    top, below = stack.pop(), 0
                 else:
-                    top, below = self.stack.pop(), self.stack.pop()
-                self.stack.append(below + top)
+                    top, below = stack.pop(), stack.pop()
+                stack.append(below + top)
                 # For maths operation, zero flag is assigned according to the result
-                self.zero_flag = (self.stack[-1] == 0)
+                zero_flag = (stack[-1] == 0)
 
             elif instruction == 'sub':
                 # Default values are 0, 0 (picked in this order is the stack does not have enough elements)
-                if len(self.stack) == 0:
+                if len(stack) == 0:
                     top, below = 0, 0
-                elif len(self.stack) == 1:
-                    top, below = self.stack.pop(), 0
+                elif len(stack) == 1:
+                    top, below = stack.pop(), 0
                 else:
-                    top, below = self.stack.pop(), self.stack.pop()
-                self.stack.append(below - top)
+                    top, below = stack.pop(), stack.pop()
+                stack.append(below - top)
                 # For maths operation, zero flag is assigned according to the result
-                self.zero_flag = (self.stack[-1] == 0)
+                zero_flag = (stack[-1] == 0)
 
             elif instruction == 'mul':
                 # Default values are 0, 0 (picked in this order is the stack does not have enough elements)
-                if len(self.stack) == 0:
+                if len(stack) == 0:
                     top, below = 0, 0
-                elif len(self.stack) == 1:
-                    top, below = self.stack.pop(), 0
+                elif len(stack) == 1:
+                    top, below = stack.pop(), 0
                 else:
-                    top, below = self.stack.pop(), self.stack.pop()
-                self.stack.append(below * top)
+                    top, below = stack.pop(), stack.pop()
+                stack.append(below * top)
                 # For maths operation, zero flag is assigned according to the result
-                self.zero_flag = (self.stack[-1] == 0)
+                zero_flag = (stack[-1] == 0)
 
             elif instruction == 'div':
                 # Default values are 1, 0 (picked in this order is the stack does not have enough elements)
-                if len(self.stack) == 0:
+                if len(stack) == 0:
                     top, below = 1, 0
-                elif len(self.stack) == 1:
-                    top, below = self.stack.pop(), 0
+                elif len(stack) == 1:
+                    top, below = stack.pop(), 0
                 else:
-                    top, below = self.stack.pop(), self.stack.pop()
+                    top, below = stack.pop(), stack.pop()
                 if top == 0:
                     raise FauxPythonDivisionByZero("Division by zero")
-                self.stack.append(below // top)
+                stack.append(below // top)
                 # For maths operation, zero flag is assigned according to the result
-                self.zero_flag = (self.stack[-1] == 0)
+                zero_flag = (stack[-1] == 0)
 
             elif instruction == 'mod':
                 # Default values are 1, 0 (picked in this order is the stack does not have enough elements)
-                if len(self.stack) == 0:
+                if len(stack) == 0:
                     top, below = 1, 0
-                elif len(self.stack) == 1:
-                    top, below = self.stack.pop(), 0
+                elif len(stack) == 1:
+                    top, below = stack.pop(), 0
                 else:
-                    top, below = self.stack.pop(), self.stack.pop()
+                    top, below = stack.pop(), stack.pop()
                 if top == 0:
                     raise FauxPythonDivisionByZero("Modulo by zero")
-                self.stack.append(below % top)
+                stack.append(below % top)
                 # For maths operation, zero flag is assigned according to the result
-                self.zero_flag = (self.stack[-1] == 0)
+                zero_flag = (stack[-1] == 0)
 
             elif instruction == 'pow':
                 # Default values are 1, 1 (picked in this order is the stack does not have enough elements)
-                if len(self.stack) == 0:
+                if len(stack) == 0:
                     top, below = 1, 1
-                elif len(self.stack) == 1:
-                    top, below = self.stack.pop(), 1
+                elif len(stack) == 1:
+                    top, below = stack.pop(), 1
                 else:
-                    top, below = self.stack.pop(), self.stack.pop()
+                    top, below = stack.pop(), stack.pop()
                 if top >= 0:
-                    self.stack.append(below ** top)
+                    stack.append(below ** top)
                 else:
                     if below > 1:
-                        self.stack.append(0)
+                        stack.append(0)
                     elif below == 1:
-                        self.stack.append(1)
+                        stack.append(1)
                     elif below == 0:
                         raise FauxPythonDivisionByZero("Zero to a negative power")
                     else: # below < 0:
-                        self.stack.append(-1)
+                        stack.append(-1)
                 # For maths operation, zero flag is assigned according to the result
-                self.zero_flag = (self.stack[-1] == 0)
+                zero_flag = (stack[-1] == 0)
 
             elif instruction == 'abs':
-                if self.stack:
-                    self.stack.append(abs(self.stack.pop()))
+                if stack:
+                    stack.append(abs(stack.pop()))
                 else: # If the stack is empty, act as if it had a 0
-                    self.stack = [0]
+                    stack = [0]
                 # For maths operation, zero flag is assigned according to the result
-                self.zero_flag = (self.stack[-1] == 0)
+                zero_flag = (stack[-1] == 0)
 
             else:
                 raise FauxPythonAssemblyError
 
             instruction_pointer += 1
 
+        return (stack, zero_flag)

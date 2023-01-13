@@ -33,41 +33,41 @@ class TestExecuteFromAssembly(unittest.TestCase):
         interpreter = Interpreter()
 
         lines = ['push 1', 'push 3', 'add']
-        interpreter._execute_assembly(lines)
+        stack, _ = interpreter._execute_assembly(lines)
 
-        self.assertListEqual(interpreter.stack, [4])
+        self.assertListEqual(stack, [4])
 
     def test_execute_all_maths(self):
         interpreter = Interpreter()
 
         lines = ['push 1', 'push 2', 'push 3', 'push 4', 'push 5', 'push 6', 'push -7', 'abs', 'mul', 'add', 'sub', 'abs', 'push 10', 'mod', 'div', 'pow']
-        interpreter._execute_assembly(lines)
+        stack, _ = interpreter._execute_assembly(lines)
 
-        self.assertListEqual(interpreter.stack, [1, 2])
+        self.assertListEqual(stack, [1, 2])
 
     def test_execute_all_stack_operation_no_io_no_jumps(self):
         interpreter = Interpreter()
 
         lines = ['push 4', 'copy 2', 'push 5', 'copy 2', 'push 6', 'copy 3', 'place 3', 'place -1', 'pick 3', 'pick -2']
-        interpreter._execute_assembly(lines)
+        stack, _ = interpreter._execute_assembly(lines)
 
-        self.assertListEqual(interpreter.stack, [6, 4, 6, 5, 6, 5, 4])
+        self.assertListEqual(stack, [6, 4, 6, 5, 6, 5, 4])
 
     def test_execute_jumps(self):
         interpreter = Interpreter()
 
         lines = ['push 5', 'jmpnz 2', 'push 1', 'push 0', 'jmpz 2', 'push 0', 'push 3']
-        interpreter._execute_assembly(lines)
+        stack, _ = interpreter._execute_assembly(lines)
 
-        self.assertListEqual(interpreter.stack, [5, 0, 3])
+        self.assertListEqual(stack, [5, 0, 3])
 
     def test_execute_jumps_2(self):
         interpreter = Interpreter()
 
         lines = ['push 0', 'jmpnz 2', 'push 1', 'push 0', 'jmpz 2', 'push 0', 'push 3']
-        interpreter._execute_assembly(lines)
+        stack, _ = interpreter._execute_assembly(lines)
 
-        self.assertListEqual(interpreter.stack, [0, 1, 0, 3])
+        self.assertListEqual(stack, [0, 1, 0, 3])
 
     def test_execute_io(self):
         class Reader:
@@ -86,17 +86,17 @@ class TestExecuteFromAssembly(unittest.TestCase):
         interpreter = Interpreter(writer, Reader())
 
         lines = ['read 2', 'print 1', 'read 3', 'print 2', 'push 100', 'print 1']
-        interpreter._execute_assembly(lines)
+        stack, _ = interpreter._execute_assembly(lines)
 
-        self.assertListEqual(interpreter.stack, [1, 3])
+        self.assertListEqual(stack, [1, 3])
         self.assertListEqual(writer.values, [2, 5, 4, 100])
 
     def test_execute_not_enough_elements(self):
         def assertOK(interpreter: Interpreter, lines: list[str], final_stack: list[int], final_zero_flag: bool = None):
-            interpreter._execute_assembly(lines)
-            self.assertListEqual(interpreter.stack, final_stack)
+            stack, zero_flag = interpreter._execute_assembly(lines)
+            self.assertListEqual(stack, final_stack)
             if not final_zero_flag is None:
-                self.assertEqual(interpreter.zero_flag, final_zero_flag)
+                self.assertEqual(zero_flag, final_zero_flag)
 
         interpreter = Interpreter()
 
