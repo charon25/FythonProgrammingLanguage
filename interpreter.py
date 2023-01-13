@@ -175,11 +175,18 @@ class Interpreter:
 
     def _deltas_to_assembly(self, deltas: list[tuple[int, int]]) -> list[str]:
         lines = []
-        # TODO : gestion erreur si deltas pas liste de tuples
         index = 0
+
+        # If any error occurs while reading a tuple, just go to the next one
         while index < len(deltas):
-            di, dw = deltas[index]
-            opcode = (di, self._delta_w_modulo_10(dw))
+            try:
+                di, dw = deltas[index]
+            except ValueError: # Not enough or too many elements to unpack
+                continue
+            try:
+                opcode = (di, self._delta_w_modulo_10(dw))
+            except TypeError: # dw is not an integer
+                continue
 
             if opcode in OPCODES:
                 name, need_number, default_number = OPCODES[opcode]
@@ -197,6 +204,8 @@ class Interpreter:
 
 
     def _construct_number_from_deltas(self, deltas: list[tuple[int, int]], default_number: int) -> tuple[int, int]:
+        """Return the constructed number and how many lines it took."""
+
         digits = []
         # The variable needs to be declared before hand
         # as if deltas is empty, it will not be declared by the for loop
