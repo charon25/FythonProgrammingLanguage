@@ -3,8 +3,8 @@ import re
 import sys
 from typing import IO
 
-from interpreter import Interpreter
-from interpreter_manager import InterpreterManager
+from interpreter import FythonAssemblyError, FythonDivisionByZero, Interpreter, PythonCodeError
+from interpreter_manager import InterpreterManager, InterpreterManagerError
 
 
 
@@ -56,7 +56,15 @@ if __name__ == '__main__':
     interpreter = Interpreter(file_out=writer, file_in=reader, output_format=arguments.output_format)
     manager = InterpreterManager(interpreter, arguments.input_type, arguments.output_type)
 
-    manager.execute(arguments.input_path, arguments.output_path)
+    try:
+        manager.execute(arguments.input_path, arguments.output_path)
+    except (InterpreterManagerError, PythonCodeError, FythonAssemblyError, FythonDivisionByZero) as e:
+        print(f"main.py: error: {e}")
+    # Catch everything so we can close the file at the end
+    except Exception as e:     
+        print(f"main.py: unknown error: {e}")
+    except KeyboardInterrupt:
+        pass
 
     if reader is not sys.stdin:
         reader.close()

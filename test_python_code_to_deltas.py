@@ -52,20 +52,20 @@ class TestPythonCodeToDeltas(unittest.TestCase):
         code4 = 'if = 1'
 
         with self.assertRaises(PythonCodeError):
-            interpreter._python_code_to_deltas(code1)
+            interpreter.python_code_to_deltas(code1)
         with self.assertRaises(PythonCodeError):
-            interpreter._python_code_to_deltas(code2)
+            interpreter.python_code_to_deltas(code2)
         with self.assertRaises(PythonCodeError):
-            interpreter._python_code_to_deltas(code3)
+            interpreter.python_code_to_deltas(code3)
         with self.assertRaises(PythonCodeError):
-            interpreter._python_code_to_deltas(code4)
+            interpreter.python_code_to_deltas(code4)
 
     def test_small_code(self):
         interpreter = Interpreter()
 
         code = '\n'.join(['a= 2', 'if a:', '    a = 3', '    b = "This is a very long" * a', '    print(b, sep=" ", end="")', 'a = len(b) * 2'])
 
-        deltas = interpreter._python_code_to_deltas(code)
+        deltas = interpreter.python_code_to_deltas(code)
 
         self.assertListEqual(deltas, [(0, 0), (1, 1), (0, 6), (0, -5), (-1, 1)])
 

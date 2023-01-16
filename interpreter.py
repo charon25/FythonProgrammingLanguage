@@ -141,7 +141,7 @@ class Interpreter:
         return len(line.split()) - 1
 
 
-    def _python_code_to_deltas(self, code: str) -> list[tuple[int, int]]:
+    def python_code_to_deltas(self, code: str) -> list[tuple[int, int]]:
         try:
             ast.parse(code)
         except Exception:
@@ -178,7 +178,7 @@ class Interpreter:
         return dw % 10
 
 
-    def _deltas_to_assembly(self, deltas: list[tuple[int, int]]) -> list[str]:
+    def deltas_to_assembly(self, deltas: list[tuple[int, int]]) -> list[str]:
         lines = []
         index = 0
 
@@ -257,13 +257,13 @@ class Interpreter:
 
 
 
-    def _assembly_to_deltas(self, lines: list[str]) -> list[tuple[int, int]]:
+    def assembly_to_deltas(self, lines: list[str]) -> list[tuple[int, int]]:
         instructions = self._parse_lines_to_instructions(lines)
         deltas: list[tuple[int, int]] = list()
 
         for instruction, value in instructions:
             if instruction not in INVERSE_OPCODES:
-                raise FythonAssemblyError
+                raise FythonAssemblyError(f"unknown instruction '{instruction}'.")
 
             deltas.append(INVERSE_OPCODES[instruction])
             if value is not None:
@@ -298,7 +298,7 @@ class Interpreter:
         return instructions
 
 
-    def _execute_assembly(self, lines: list[str]) -> tuple[list[int], bool]:
+    def execute_assembly(self, lines: list[str]) -> tuple[list[int], bool]:
         stack: list[int] = list()
         zero_flag: bool = True
         instruction_pointer = 0
@@ -450,7 +450,7 @@ class Interpreter:
                 else:
                     top, below = stack.pop(), stack.pop()
                 if top == 0:
-                    raise FythonDivisionByZero("Division by zero")
+                    raise FythonDivisionByZero("division by zero during execution.")
                 stack.append(below // top)
                 # For maths operation, zero flag is assigned according to the result
                 zero_flag = (stack[-1] == 0)
@@ -464,7 +464,7 @@ class Interpreter:
                 else:
                     top, below = stack.pop(), stack.pop()
                 if top == 0:
-                    raise FythonDivisionByZero("Modulo by zero")
+                    raise FythonDivisionByZero("modulo by zero during execution")
                 stack.append(below % top)
                 # For maths operation, zero flag is assigned according to the result
                 zero_flag = (stack[-1] == 0)
@@ -485,7 +485,7 @@ class Interpreter:
                     elif below == 1:
                         stack.append(1)
                     elif below == 0:
-                        raise FythonDivisionByZero("Zero to a negative power")
+                        raise FythonDivisionByZero("zero to a negative power during execution.")
                     else: # below < 0:
                         stack.append(-1)
                 # For maths operation, zero flag is assigned according to the result
@@ -500,7 +500,7 @@ class Interpreter:
                 zero_flag = (stack[-1] == 0)
 
             else:
-                raise FythonAssemblyError
+                raise FythonAssemblyError(f"unknown instruction '{instruction}'.")
 
             instruction_pointer += 1
 
