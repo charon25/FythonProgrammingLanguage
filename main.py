@@ -7,6 +7,7 @@ from interpreter import Interpreter
 from interpreter_manager import InterpreterManager
 
 
+
 def read_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Interpreter of the Fython language.")
 
@@ -23,39 +24,7 @@ def read_arguments() -> argparse.Namespace:
 
     return parser.parse_args()
 
-### === READING INPUT === ###
 
-def read_file(input_path: str) -> str:
-    try:
-        with open(input_path, 'r', encoding='utf-8') as fi:
-            return fi.read()
-    except IOError:
-        print(f"main.py: error: argument input_path: can't open '{input_path}'.")
-        exit()
-
-def read_python(input_path: str) -> str:
-    return read_file(input_path)
-
-def read_deltas(input_path: str) -> list[tuple[int, int]]:
-    lines = read_file(input_path).splitlines()
-
-    deltas: list[tuple[int, int]] = list()
-    try:
-        for line in lines:
-            # This regex finds two numbers, possibly negative, seperated by anything other that a dash
-            if (delta := re.findall(r'(-?[0-9])+[^0-9-]+(-?[0-9])+', line)):
-                di, dw = map(int, delta[0])
-                deltas.append((di, dw))
-    except (ValueError, IndexError):
-        print(f"main.py: error: could not read deltas file '{input_path}'.")
-        exit()
-
-    return deltas
-
-def read_assembly(input_path: str) -> list[str]:
-    return read_file(input_path).splitlines()
-
-#############################
 
 def get_program_input(program_input: str) -> IO:
     try:
@@ -75,7 +44,7 @@ def get_program_output(program_output: str) -> IO:
         print(f"main.py: error: could not read program output : '{program_output}'.")
         exit()
 
-#############################
+
 
 if __name__ == '__main__':
     arguments = read_arguments()
@@ -86,6 +55,8 @@ if __name__ == '__main__':
 
     interpreter = Interpreter(file_out=writer, file_in=reader, output_format=arguments.output_format)
     manager = InterpreterManager(interpreter, arguments.input_type, arguments.output_type)
+
+    manager.execute(arguments.input_path, arguments.output_path)
 
     if reader is not sys.stdin:
         reader.close()

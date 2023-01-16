@@ -47,10 +47,10 @@ REGEX_COMMENT = re.compile(r'#[\s\S]*$')
 class PythonCodeError(Exception):
     pass
 
-class FauxPythonDivisionByZero(Exception):
+class FythonDivisionByZero(Exception):
     pass
 
-class FauxPythonAssemblyError(Exception):
+class FythonAssemblyError(Exception):
     pass
 
 
@@ -263,7 +263,7 @@ class Interpreter:
 
         for instruction, value in instructions:
             if instruction not in INVERSE_OPCODES:
-                raise FauxPythonAssemblyError
+                raise FythonAssemblyError
 
             deltas.append(INVERSE_OPCODES[instruction])
             if value is not None:
@@ -450,7 +450,7 @@ class Interpreter:
                 else:
                     top, below = stack.pop(), stack.pop()
                 if top == 0:
-                    raise FauxPythonDivisionByZero("Division by zero")
+                    raise FythonDivisionByZero("Division by zero")
                 stack.append(below // top)
                 # For maths operation, zero flag is assigned according to the result
                 zero_flag = (stack[-1] == 0)
@@ -464,7 +464,7 @@ class Interpreter:
                 else:
                     top, below = stack.pop(), stack.pop()
                 if top == 0:
-                    raise FauxPythonDivisionByZero("Modulo by zero")
+                    raise FythonDivisionByZero("Modulo by zero")
                 stack.append(below % top)
                 # For maths operation, zero flag is assigned according to the result
                 zero_flag = (stack[-1] == 0)
@@ -485,7 +485,7 @@ class Interpreter:
                     elif below == 1:
                         stack.append(1)
                     elif below == 0:
-                        raise FauxPythonDivisionByZero("Zero to a negative power")
+                        raise FythonDivisionByZero("Zero to a negative power")
                     else: # below < 0:
                         stack.append(-1)
                 # For maths operation, zero flag is assigned according to the result
@@ -500,7 +500,7 @@ class Interpreter:
                 zero_flag = (stack[-1] == 0)
 
             else:
-                raise FauxPythonAssemblyError
+                raise FythonAssemblyError
 
             instruction_pointer += 1
 
