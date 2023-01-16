@@ -12,11 +12,11 @@ class TestPythonCodeToDeltas(unittest.TestCase):
         line2 = "    a = 1"
         line3 = "     a = 1"
 
-        self.assertTupleEqual(interpreter._get_line_indentation_depth(line1, last_length=0, current_depth=0), (0, 0))
-        self.assertTupleEqual(interpreter._get_line_indentation_depth(line2, last_length=0, current_depth=0), (4, 1))
-        self.assertTupleEqual(interpreter._get_line_indentation_depth(line2, last_length=4, current_depth=1), (4, 1))
-        self.assertTupleEqual(interpreter._get_line_indentation_depth(line3, last_length=0, current_depth=0), (5, 1))
-        self.assertTupleEqual(interpreter._get_line_indentation_depth(line3, last_length=4, current_depth=1), (5, 2))
+        self.assertTupleEqual(interpreter._get_line_indentation_depth(line1, last_length=0, current_depth=0, previous_lengths=[0]), (0, 0))
+        self.assertTupleEqual(interpreter._get_line_indentation_depth(line2, last_length=0, current_depth=0, previous_lengths=[0]), (4, 1))
+        self.assertTupleEqual(interpreter._get_line_indentation_depth(line2, last_length=4, current_depth=1, previous_lengths=[0, 4]), (4, 1))
+        self.assertTupleEqual(interpreter._get_line_indentation_depth(line3, last_length=0, current_depth=0, previous_lengths=[0]), (5, 1))
+        self.assertTupleEqual(interpreter._get_line_indentation_depth(line3, last_length=4, current_depth=1, previous_lengths=[0, 5]), (5, 2))
 
     def test_get_all_matches(self):
         interpreter = Interpreter()
@@ -69,6 +69,26 @@ class TestPythonCodeToDeltas(unittest.TestCase):
 
         self.assertListEqual(deltas, [(0, 0), (1, 1), (0, 6), (0, -5), (-1, 1)])
 
+    def test_minus_2_indentation_depth(self):
+        interpreter = Interpreter()
+
+        code = '\n'.join(['True', 'if 1:', '    if 1:', '       True', 'a = 1'])
+
+        deltas = interpreter.python_code_to_deltas(code)
+
+        self.assertListEqual(deltas, [(0, 1), (1, 0), (1, -1), (-2, 2)])
+
+    def test_minus_2_indentation_depth_then_plus_one(self):
+        interpreter = Interpreter()
+
+        code = '\n'.join(['True', 'if 1:', '    if 1:', '       True', 'if True:', '                         True'])
+
+        deltas = interpreter.python_code_to_deltas(code)
+
+        self.assertListEqual(deltas, [(0, 1), (1, 0), (1, -1), (-2, 1), (1, -1)])
+
 
 if __name__ == '__main__':
-    unittest.main()
+    # unittest.main()
+    a=TestPythonCodeToDeltas()
+    a.test_minus_2_indentation_depth()

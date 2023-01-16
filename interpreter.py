@@ -97,16 +97,20 @@ class Interpreter:
             return 0
 
 
-    def _get_line_indentation_depth(self, line: str, last_length: int, current_depth: int) -> int:
-            indentation: str = REGEX_INDENTATION.findall(line)[0]
-            indentation_length = len(indentation.replace("\t", "    ")) # Replace every tab with 4 spaces so the len calculation is accurate
+    def _get_line_indentation_depth(self, line: str, last_length: int, current_depth: int, previous_lengths: list[int]) -> int:
+        indentation: str = REGEX_INDENTATION.findall(line)[0]
+        indentation_length = len(indentation.replace("\t", "    ")) # Replace every tab with 4 spaces so the len calculation is accurate
 
-            if indentation_length > last_length:
-                return (indentation_length, current_depth + 1)
-            elif indentation_length < last_length:
-                return (indentation_length, current_depth - 1)
+        if indentation_length > last_length:
+            previous_lengths.append(indentation_length)
+            return (indentation_length, current_depth + 1)
+        elif indentation_length < last_length:
+            for k, previous_length in enumerate(reversed(previous_lengths)):
+                if indentation_length == previous_length:
+                    previous_lengths = previous_lengths[:-k]
+                    return (indentation_length, current_depth - k)
 
-            return (indentation_length, current_depth)
+        return (indentation_length, current_depth)
 
     def _get_all_matches_regex(self, pattern: re.Pattern, string: str) -> tuple[int, int]:
         previous_end = 0
@@ -152,13 +156,14 @@ class Interpreter:
 
         indentation_length = 0
         indentation_depth = 0
+        previous_lengths: list[int] = [0]
 
         for line in lines:
             # Remove empty lines
             if line.strip() == '':
                 continue
 
-            indentation_length, indentation_depth = self._get_line_indentation_depth(line, indentation_length, indentation_depth)
+            indentation_length, indentation_depth = self._get_line_indentation_depth(line, indentation_length, indentation_depth, previous_lengths)
             whitespace_count = self._get_line_whitespace_count(line)
             # This means the line was only a comment, so remove it
             if whitespace_count is None:
