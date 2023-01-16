@@ -1,8 +1,10 @@
 import argparse
 import re
 import sys
+from typing import IO
 
 from interpreter import Interpreter
+from interpreter_manager import InterpreterManager
 
 
 def read_arguments() -> argparse.Namespace:
@@ -21,6 +23,7 @@ def read_arguments() -> argparse.Namespace:
 
     return parser.parse_args()
 
+### === READING INPUT === ###
 
 def read_file(input_path: str) -> str:
     try:
@@ -52,9 +55,39 @@ def read_deltas(input_path: str) -> list[tuple[int, int]]:
 def read_assembly(input_path: str) -> list[str]:
     return read_file(input_path).splitlines()
 
+#############################
+
+def get_program_input(program_input: str) -> IO:
+    try:
+        if program_input is None:
+            return sys.stdin
+        return open(program_input, 'r')
+    except IOError:
+        print(f"main.py: error: could not read program input : '{program_input}'.")
+        exit()
+
+def get_program_output(program_output: str) -> IO:
+    try:
+        if program_output is None:
+            return sys.stdout
+        return open(program_output, 'w')
+    except IOError:
+        print(f"main.py: error: could not read program output : '{program_output}'.")
+        exit()
+
+#############################
 
 if __name__ == '__main__':
     arguments = read_arguments()
     print(arguments)
 
+    reader = get_program_input(arguments.program_input)
+    writer = get_program_output(arguments.program_output)
 
+    interpreter = Interpreter(file_out=writer, file_in=reader, output_format=arguments.output_format)
+    manager = InterpreterManager(interpreter, arguments.input_type, arguments.output_type)
+
+    if reader is not sys.stdin:
+        reader.close()
+    if writer is not sys.stdout:
+        writer.close()

@@ -1,6 +1,5 @@
 import ast
 import re
-import sys
 from typing import IO
 
 
@@ -58,12 +57,7 @@ class FauxPythonAssemblyError(Exception):
 class Interpreter:
     def __init__(self, file_out: IO = None, file_in: IO = None, **kwargs) -> None:
         self.file_out = file_out
-        if self.file_out is None:
-            self.file_out = sys.stdout
-
         self.file_in = file_in
-        if self.file_in is None:
-            self.file_in = sys.stdin
 
         self.output_format = kwargs.get('output_format', 'char')
 
@@ -71,6 +65,9 @@ class Interpreter:
 
     def _print(self, value: int) -> None:
         """Print the provided character to the file_out stream, formatted according to the 'output_format' parameter. If any error occurs during the writing, nothing will happen."""
+
+        if self.file_out is None:
+            return
 
         try:
             if self.output_format == 'char':
@@ -87,6 +84,9 @@ class Interpreter:
 
     def _input(self) -> int:
         """Read one character from the file_in stream, formatted according to the 'output_format' parameter. If any error occurs, will return 0."""
+
+        if self.file_in is None:
+            return 0
 
         try:
             if self.output_format == 'char':
