@@ -1,0 +1,40 @@
+	# N
+read 1
+	# d
+push 2
+
+	# check if d = N
+copy 2
+pick 2
+copy 2
+pick 3
+sub
+pop 1
+    # if yes, not prime
+jmpz 15
+	# N % d
+copy 2
+pick 2
+copy 2
+place 3
+mod
+pop 1
+	# if N % d = 0, not prime
+jmpz 5
+	# else, increment i
+pick 1
+push 1
+add 1
+
+	# not prime and not finished
+jmpnz -17
+
+	# not prime
+pop 2
+push 0
+jmpz 3
+	# prime
+pop 2
+push 1
+
+print 1

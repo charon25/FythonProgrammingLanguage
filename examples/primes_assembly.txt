@@ -1,0 +1,68 @@
+    # M
+read 1
+push 1
+add
+    # i
+push 2
+    # check if i = M
+copy 2
+pick 2
+copy 2
+pick 3
+sub
+pop 1
+    # if yes, finished
+jmpz 35
+    # duplicate i to work on it with the prime algorithm
+pick 1
+copy 2
+
+    == CHECK IF PRIME
+	# d
+push 2
+
+	# check if d = N
+copy 2
+pick 2
+copy 2
+pick 3
+sub
+pop 1
+    # if yes, not prime
+jmpz 15
+	# N % d
+copy 2
+pick 2
+copy 2
+place 3
+mod
+pop 1
+	# if N % d = 0, not prime
+jmpz 5
+	# else, increment i
+pick 1
+push 1
+add 1
+
+	# not prime and not finished
+jmpnz -17
+
+	# not prime
+pop 2
+push 0
+jmpz 3
+	# prime
+pop 2
+push 1
+
+    # if i was prime, print it
+pop 1
+jmpnz 2
+jmpz 3
+copy 2
+print 1
+
+    # increment i and jump back to top
+push 1
+add
+jmpnz -40

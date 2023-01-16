@@ -60,8 +60,8 @@ if __name__ == '__main__':
     except (InterpreterManagerError, PythonCodeError, FythonAssemblyError, FythonDivisionByZero) as e:
         print(f"main.py: error: {e}")
     # Catch everything so we can close the file at the end
-    except Exception as e:     
-        print(f"main.py: unknown error: {e}")
+    # except Exception as e:     
+    #     print(f"main.py: unknown error: {e}")
     except KeyboardInterrupt:
         pass
 

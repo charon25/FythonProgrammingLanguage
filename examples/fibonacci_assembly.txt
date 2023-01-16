@@ -1,0 +1,19 @@
+read 1
+push 1
+add
+push 0
+push 1
+pick -1
+push 1
+sub
+copy 3
+abs
+add
+pop 1
+jmpz 7
+place -1
+copy 3
+print 1
+pick -2
+add
+jmpnz -13
