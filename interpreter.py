@@ -68,7 +68,7 @@ class Interpreter:
 
         if self.file_out is None:
             return
-        print(f"p={value}")
+
         try:
             if self.output_format == 'char':
                 # The value is inside the correct range of the chr function
@@ -78,7 +78,7 @@ class Interpreter:
                     self.file_out.write('�')
 
             elif self.output_format == 'number':
-                self.file_out.write(str(value))
+                self.file_out.write(f'{value}\n')
         except Exception:
             pass
 
@@ -92,7 +92,7 @@ class Interpreter:
             if self.output_format == 'char':
                 return ord(self.file_in.read(1))
             elif self.output_format == 'number':
-                return self.file_in.read(1)
+                return int(self.file_in.readline().strip())
         except Exception:
             return 0
 
@@ -265,7 +265,7 @@ class Interpreter:
 
 
 
-    def assembly_to_deltas(self, lines: list[str]) -> list[tuple[int, int]]:
+    def assembly_to_deltas(self, lines: list[str], add_comment: bool = False) -> list[tuple[int, int]]:
         instructions = self._parse_lines_to_instructions(lines)
         deltas: list[tuple[int, int]] = list()
 
@@ -273,6 +273,8 @@ class Interpreter:
             if instruction not in INVERSE_OPCODES:
                 raise FythonAssemblyError(f"unknown instruction '{instruction}'.")
 
+            if add_comment:
+                deltas.append((f'\n# {instruction} {value if value is not None else ""}', ''))
             deltas.append(INVERSE_OPCODES[instruction])
             if value is not None:
                 deltas.extend(self._number_to_deltas(value))

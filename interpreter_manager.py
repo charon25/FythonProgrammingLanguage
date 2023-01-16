@@ -106,7 +106,7 @@ class InterpreterManager():
 
     def _assembly_to_deltas(self, input_path: str, output_path: str) -> None:
         assembly = self.read_assembly(input_path)
-        deltas = self.interpreter.assembly_to_deltas(assembly)
+        deltas = self.interpreter.assembly_to_deltas(assembly, add_comment=True)
         self.write_deltas(deltas, output_path)
 
     def _assembly_to_assembly(self, input_path: str, output_path: str) -> None:
