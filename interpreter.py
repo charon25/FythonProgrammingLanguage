@@ -203,10 +203,27 @@ class Interpreter:
 
                 else:
                     lines.append(name)
+
+            # Comments management
+            elif di == 0:
+                if dw > 0:
+                    index += dw
+                elif dw < 0:
+                    offset = self._find_block_comment_end(deltas[index+1:])
+                    index += offset
+
             index += 1
 
         return lines
 
+
+    def _find_block_comment_end(self, deltas: list[tuple[int, int]]) -> int:
+        """Return the offset to the end of the block comment (di == 0, dw < 0)."""
+
+        for offset, (di, dw) in enumerate(deltas):
+            if di == 0 and dw < 0:
+                return offset + 1
+        return len(deltas)
 
     def _construct_number_from_deltas(self, deltas: list[tuple[int, int]], default_number: int) -> tuple[int, int]:
         """Return the constructed number and how many lines it took."""
@@ -216,10 +233,10 @@ class Interpreter:
         # as if deltas is empty, it will not be declared by the for loop
         offset = 0
         # Loop while the first element of the tuple is 0
-        for offset, (di, dn) in enumerate(deltas):
+        for offset, (di, dw) in enumerate(deltas):
             if di != 0:
                 break
-            digits.append(dn)
+            digits.append(dw)
         # If deltas if empty after the loop (ie we did not break)
         # we need to add one to offset, as it could not go pass the last correct value
         else:

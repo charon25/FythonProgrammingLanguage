@@ -60,6 +60,22 @@ class TestDeltasToAssembly(unittest.TestCase):
 
         self.assertListEqual(interpreter._deltas_to_assembly(deltas), expected)
 
+    def test_comments(self):
+        interpreter = Interpreter()
+
+        deltas = [(1, 2), (0, 1), (1, 2), (1, -2), (0, 2), (1, 2), (1, 2), (1, 3)]
+        expected = ['add', 'sub', 'mul']
+
+        self.assertListEqual(interpreter._deltas_to_assembly(deltas), expected)
+
+    def test_block_comments(self):
+        interpreter = Interpreter()
+
+        deltas = [(1, 2), (0, -1), (1, 2), (0, -1), (1, -2), (0, -2), (1, 2), (1, 2), (1, 2), (0, -3), (1, 3)]
+        expected = ['add', 'sub', 'mul']
+
+        self.assertListEqual(interpreter._deltas_to_assembly(deltas), expected)
+
 
 if __name__ == '__main__':
     unittest.main()
