@@ -48,7 +48,6 @@ def get_program_output(program_output: str) -> IO:
 
 if __name__ == '__main__':
     arguments = read_arguments()
-    print(arguments)
 
     reader = get_program_input(arguments.program_input)
     writer = get_program_output(arguments.program_output)

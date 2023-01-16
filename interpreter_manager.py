@@ -1,5 +1,6 @@
 from enum import Enum
 import re
+import sys
 
 from interpreter import Interpreter
 
@@ -58,6 +59,7 @@ class InterpreterManager():
     def write_deltas(self, deltas: list[tuple[int, int]], output_path: str) -> None:
         try:
             with open(output_path, 'w') as fo:
+                fo.write("di\tdw\n")
                 fo.write("\n".join(f'{di}\t{dw}' for di, dw in deltas))
         except IOError:
             raise InterpreterManagerError(f"can't open output file '{output_path}'.")
@@ -118,7 +120,9 @@ class InterpreterManager():
 
     def execute(self, input_path: str, output_path: str = None):
         if output_path is None and self.output_type != OutputType.EXECUTE:
-            raise InterpreterManagerError(f"no output file provided")
+            raise InterpreterManagerError(f"no output file provided.")
+        if output_path is not None and self.output_type == OutputType.EXECUTE:
+            print("main.py: warning: the provided output file is not used.")
 
         FUNCTIONS_DICT: dict[callable] = {
             (InputType.PYTHON, OutputType.DELTAS): self._python_to_deltas,
@@ -135,6 +139,10 @@ class InterpreterManager():
         function = FUNCTIONS_DICT[(self.input_type, self.output_type)]
 
         if self.output_type == OutputType.EXECUTE:
+            if self.interpreter.file_out is sys.stdout:
+                print("Program execution:\n==========")
             function(input_path)
+            print("\n==========\nExecution complete!")
         else:
             function(input_path, output_path)
+            print(f"Conversion from {self.input_type.name} to {self.output_type.name} successful!")

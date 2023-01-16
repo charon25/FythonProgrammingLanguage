@@ -1,0 +1,2 @@
+push 65 # Push the letter A
+print 1 # Print it
