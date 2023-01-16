@@ -68,7 +68,7 @@ class Interpreter:
 
         if self.file_out is None:
             return
-
+        print(f"p={value}")
         try:
             if self.output_format == 'char':
                 # The value is inside the correct range of the chr function
@@ -104,11 +104,13 @@ class Interpreter:
         if indentation_length > last_length:
             previous_lengths.append(indentation_length)
             return (indentation_length, current_depth + 1)
+
         elif indentation_length < last_length:
             for k, previous_length in enumerate(reversed(previous_lengths)):
                 if indentation_length == previous_length:
-                    previous_lengths = previous_lengths[:-k]
                     return (indentation_length, current_depth - k)
+
+                previous_lengths.pop()
 
         return (indentation_length, current_depth)
 
@@ -159,12 +161,13 @@ class Interpreter:
         previous_lengths: list[int] = [0]
 
         for line in lines:
-            # Remove empty lines
-            if line.strip() == '':
+            # Remove empty lines and line starting with a comment
+            if line.strip() == '' or line.strip().startswith('#'):
                 continue
 
             indentation_length, indentation_depth = self._get_line_indentation_depth(line, indentation_length, indentation_depth, previous_lengths)
             whitespace_count = self._get_line_whitespace_count(line)
+
             # This means the line was only a comment, so remove it
             if whitespace_count is None:
                 continue
