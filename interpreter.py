@@ -316,7 +316,7 @@ class Interpreter:
         instructions = self._parse_lines_to_instructions(lines)
 
         # The incrementation of the instruction pointer is at the bottom of the loop
-        while instruction_pointer < len(lines):
+        while instruction_pointer < len(instructions):
             instruction, argument = instructions[instruction_pointer]
 
             if instruction == 'print':
