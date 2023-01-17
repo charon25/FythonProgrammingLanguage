@@ -122,6 +122,8 @@ Where the parameters are :
  - `--program-output` (or `-O`) : if the program is executed, where it should print its output. If not provided, will use stdout ;
  - `--format` (or `-f`) : if the program is executed, the format of the output and input. Either `char` (default) to print and read ASCII characters, or `number` to print and read base 10 numbers.
 
+**Important note** : when the input is a Fython code, the underlying Python code should be at least syntactically correct, or the interpreter will stop execution.
+
 ### Formats table
 
 This table sums up the different format combinations. The empty set marks the default behavior.
@@ -210,4 +212,179 @@ di	dw
 
 ## Examples
 
+Writing a Fython program (directly in real Python code) is actually quite difficult, which means the examples have been written in the assembly format directly (the corresponding deltas can be found next to them in the `examples` folder).
 
+**Hello, world!**
+```txt
+push 33
+push 100
+push 108
+push 114
+push 111
+push 119
+push 32
+push 44
+push 111
+push 108
+push 108
+push 101
+push 72
+
+print 13
+```
+
+**Fibonacci sequence** (the input is the number $N$ of terms to print)
+
+```txt
+    # Read number of terms N
+read 1
+push 1
+add
+    # Initialization with a=0 and b=1
+push 0
+push 1
+    # N = N - 1, and check if N == 0
+pick -1
+push 1
+sub
+    # If yes, end of the program
+jmpz 7
+    # a, b = b, a + b
+place -1
+copy 3
+print 1
+pick -2
+add
+    # Loop
+jmpnz -13
+```
+
+Output :
+```bash
+> python main.py examples\fibonacci_assembly.txt -i a -f number
+Program execution:
+==========
+10
+1
+1
+2
+3
+5
+8
+13
+21
+34
+55
+
+==========
+Execution complete!
+```
+
+**Primes** (the input is the number $M$ of number to check for primeness)
+
+```txt
+    # M
+read 1
+push 1
+add
+    # N
+push 2
+    # check if N = M
+copy 2
+pick 2
+copy 2
+pick 3
+sub
+pop 1
+    # if yes, finished
+jmpz 35
+    # duplicate i to work on it with the prime algorithm
+pick 1
+copy 2
+
+    == CHECK IF PRIME
+	# d
+push 2
+
+	# check if d = N
+copy 2
+pick 2
+copy 2
+pick 3
+sub
+pop 1
+    # if yes, not prime
+jmpz 15
+	# N % d
+copy 2
+pick 2
+copy 2
+place 3
+mod
+pop 1
+	# if N % d = 0, not prime
+jmpz 5
+	# else, increment i
+pick 1
+push 1
+add 1
+
+	# not prime and not finished
+jmpnz -17
+
+	# not prime
+pop 2
+push 0
+jmpz 3
+	# prime
+pop 2
+push 1
+
+    # if N was prime, print it
+pop 1
+jmpnz 2
+jmpz 3
+copy 2
+print 1
+
+    # increment N and jump back to top
+push 1
+add
+jmpnz -40
+```
+
+Output :
+```bash
+> python main.py examples\primes_assembly.txt -i a -f number
+Program execution:
+==========
+100
+2
+3
+5
+7
+11
+13
+17
+19
+23
+29
+31
+37
+41
+43
+47
+53
+59
+61
+67
+71
+73
+79
+83
+89
+97
+
+==========
+Execution complete!
+```

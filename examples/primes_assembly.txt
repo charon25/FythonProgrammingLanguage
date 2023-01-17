@@ -2,9 +2,9 @@
 read 1
 push 1
 add
-    # i
+    # N
 push 2
-    # check if i = M
+    # check if N = M
 copy 2
 pick 2
 copy 2
@@ -55,14 +55,14 @@ jmpz 3
 pop 2
 push 1
 
-    # if i was prime, print it
+    # if N was prime, print it
 pop 1
 jmpnz 2
 jmpz 3
 copy 2
 print 1
 
-    # increment i and jump back to top
+    # increment N and jump back to top
 push 1
 add
 jmpnz -40

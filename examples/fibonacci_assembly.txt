@@ -1,19 +1,22 @@
+
+    # Read number of terms N
 read 1
 push 1
 add
+    # Initialization with a=0 and b=1
 push 0
 push 1
+    # N = N - 1, and check if N == 0
 pick -1
 push 1
 sub
-copy 3
-abs
-add
-pop 1
+    # If yes, end of the program
 jmpz 7
+    # a, b = b, a + b
 place -1
 copy 3
 print 1
 pick -2
 add
+    # Loop
 jmpnz -13
