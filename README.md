@@ -40,7 +40,7 @@ This is an integer stack-based language, and it also has a zero flag, which is r
 
 Every blank case in this table means a NOP for now, but can be used for a new operation in the future. If $\Delta I < -1$ , there are no instructions.
 
-If $|\Delta w| > 9$ , then $ \Delta w = sign( \Delta w ) \cdot ( | \Delta w | mod 10) $
+If $|\Delta w| > 9$ , then the modulo base 10 of $|\Delta w|$ is computed, and the sign is kept.
 
 This means that 15 is considered as 5, and -13 as -3.
 
