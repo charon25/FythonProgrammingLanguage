@@ -20,7 +20,7 @@ def read_arguments() -> argparse.Namespace:
     parser.add_argument('--program-output', '-O', help="File to write the program output if it was executed. If not provided, will output to stdout.")
     parser.add_argument('--program-input', '-I', help="File to read the program input from if it was executed. If not provided, will use stdin.")
 
-    parser.add_argument('--output-format', '-f', choices=['char', 'number'], default='char', help="The format of the output if the program was executed. 'char' to write chars with corresponding Unicode code, 'number' to write the digits directly. Default 'char'.")
+    parser.add_argument('--format', '-f', choices=['char', 'number'], default='char', help="The format of the output and input of the program if it was executed. 'char' to write chars with corresponding Unicode code, 'number' to write the digits directly. Default 'char'.")
 
     return parser.parse_args()
 
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     reader = get_program_input(arguments.program_input)
     writer = get_program_output(arguments.program_output)
 
-    interpreter = Interpreter(file_out=writer, file_in=reader, output_format=arguments.output_format)
+    interpreter = Interpreter(file_out=writer, file_in=reader, output_format=arguments.format)
     manager = InterpreterManager(interpreter, arguments.input_type, arguments.output_type)
 
     try:

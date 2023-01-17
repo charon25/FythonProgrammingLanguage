@@ -44,7 +44,7 @@ class InterpreterManager():
         try:
             for line in lines:
                 # This regex finds two numbers, possibly negative, separated by anything other that a dash
-                if (delta := re.findall(r'(-?[0-9])+[^0-9-]+(-?[0-9])+', line)):
+                if (delta := re.findall(r'(-?[0-9]+)[^0-9-]+(-?[0-9]+)', line)):
                     di, dw = map(int, delta[0])
                     deltas.append((di, dw))
         except (ValueError, IndexError):

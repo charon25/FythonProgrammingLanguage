@@ -46,25 +46,25 @@ This means that 15 is considered as 5, and -13 as -3.
 
 ### Instructions details
 
-|Instruction|Description|Has a parameter $v$ ?|Stack does not have enough elements ?|Invalid $v$ |
-|:-:|:-:|:-:|:-:|:-:|
-|NOP|Do nothing.| / | / | / |
-|PUSH|Add $v$ onto the stack.|The value to add to the stack.| / | / |
-|POP|Remove the top $v$ values from the stack.|The number of values to remove from the stack.|Remove as much as possible then raise zero flag.|$v \leq 0$ : do nothing.|
-|ADD|Pop the top 2 elements of the stack, add them and push the result.| / |ADD(x, n) = n <br> ADD(x, x) = 0| / |
-|SUB|Pop the top 2 elements of the stack, subtract the first from the second and push the result.| / |SUB(x, n) = -n <br> SUB(x, x) = 0| / |
-|MUL|Pop the top 2 elements of the stack, multiply them and push the result.| / |MUL(x, n) = 0 <br> MUL(x, x) = 0| / |
-|DIV|Pop the top 2 elements of the stack, divide (euclidean division) the second by the first and push the quotient.| / |DIV(x, n) = 0 <br> DIV(x, x) = 0| / |
-|MOD|Pop the top 2 elements of the stack, divide (euclidean division) the second by the first and push the rest.| / |MOD(x, n) = 0 <br> MOD(x, x) = 0| / |
-|POW|Pop the top 2 elements of the stack, raise the second to the power of the first and push the result.| / |POW(x, n) = 1 <br> POW(x, x) = 1| / |
-|ABS|Pop the top element of the stack and push its absolute value.| / |ABS(x) = 0| / |
-|PRINT|Print the top $v$ values of the stack.|Number of value to print.|Do nothing.|$v \leq 0$ : do nothing.|
-|READ|Read $v$ values and add them onto the stack.|Number of value to read.| / |$v \leq 0$ : do nothing.|
-|COPY|Pop the top element of the stack, and push $v$ copy of it.|Number of copy to add to the stack.|Copy 0|$v \leq 0$ : pop the last value without adding it back.|
-|JMPZ|Move the instruction pointer $v$ instruction away (not counting NOP and comments) if the zero flag is set.|Number of instructions to move (can be negative to jump backwards).| / |$v = 0$ : go the next instruction.|
-|JMPNZ|Same thing, but if the zero flag is not raised.|Idem.| / |$v = 0$ : go the next instruction.|
-|PLACE|Pop the top element of the stack and place it at the specified location.|Where to put the element : 0 is at the same place, > 0 is couting down from the top of the stack, < 0 is counting up from the bottom of the stack [-1 is the bottom]).|Add 0 to the stack.| / |
-|PICK|Pop the element at the specified location and add it onto the stack.|Where to take the element from : 0 is at the same place, > 0 is couting down from the top of the stack, < 0 is counting up from the bottom of the stack [-1 is the bottom]).|Add 0 to the stack.| / |
+|Instruction|Description|Has a parameter $v$ ?|Stack does not have enough elements ?|Invalid $v$ |Default value ($v$ not specified)|
+|:-:|:-:|:-:|:-:|:-:|:-:|
+|NOP|Do nothing.| / | / | / | / |
+|PUSH|Add $v$ onto the stack.|The value to add to the stack.| / | / | 0 |
+|POP|Remove the top $v$ values from the stack.|The number of values to remove from the stack.|Remove as much as possible then raise zero flag.|$v \leq 0$ : do nothing.| 1 |
+|ADD|Pop the top 2 elements of the stack, add them and push the result.| / |ADD(x, n) = n <br> ADD(x, x) = 0| / | / |
+|SUB|Pop the top 2 elements of the stack, subtract the first from the second and push the result.| / |SUB(x, n) = -n <br> SUB(x, x) = 0| / | / |
+|MUL|Pop the top 2 elements of the stack, multiply them and push the result.| / |MUL(x, n) = 0 <br> MUL(x, x) = 0| / | / |
+|DIV|Pop the top 2 elements of the stack, divide (euclidean division) the second by the first and push the quotient.| / |DIV(x, n) = 0 <br> DIV(x, x) = 0| / | / |
+|MOD|Pop the top 2 elements of the stack, divide (euclidean division) the second by the first and push the rest.| / |MOD(x, n) = 0 <br> MOD(x, x) = 0| / | / |
+|POW|Pop the top 2 elements of the stack, raise the second to the power of the first and push the result.| / |POW(x, n) = 1 <br> POW(x, x) = 1| / | / |
+|ABS|Pop the top element of the stack and push its absolute value.| / |ABS(x) = 0| / | / |
+|PRINT|Print the top $v$ values of the stack.|Number of value to print.|Do nothing.|$v \leq 0$ : do nothing.| 1 |
+|READ|Read $v$ values and add them onto the stack.|Number of value to read.| / |$v \leq 0$ : do nothing.| 1 |
+|COPY|Pop the top element of the stack, and push $v$ copy of it.|Number of copy to add to the stack.|Copy 0|$v \leq 0$ : pop the last value without adding it back.| 2 |
+|JMPZ|Move the instruction pointer $v$ instruction away (not counting NOP and comments) if the zero flag is set.|Number of instructions to move (can be negative to jump backwards).| / |$v = 0$ : go the next instruction.| 1 |
+|JMPNZ|Same thing, but if the zero flag is not raised.|Idem.| / |$v = 0$ : go the next instruction.| 1 |
+|PLACE|Pop the top element of the stack and place it at the specified location.|Where to put the element : 0 is at the same place, > 0 is couting down from the top of the stack, < 0 is counting up from the bottom of the stack [-1 is the bottom]).|Add 0 to the stack.| / | 1 |
+|PICK|Pop the element at the specified location and add it onto the stack.|Where to take the element from : 0 is at the same place, > 0 is couting down from the top of the stack, < 0 is counting up from the bottom of the stack [-1 is the bottom]).|Add 0 to the stack.| / | 1 |
 
 ### Describing a parameter
 
@@ -101,4 +101,113 @@ This means a comment cannot occur after an instruction needing a parameter or af
 
 ## Interpreter
 
+This repo contains an interpreter for this language. During execution from the Fython code (which is really Python code), it converts it first to a list of deltas, then to a pseudo-assembly which only contains the instructions and their parameters. This assembly is then executed. 
+
+This means the interpreter can output to any of this formats instead of executing the code, and can accept deltas or assembly to execute them, making it easier to create a working code.
+
+### Usage
+
+Once cloned, the interpreter is used with the following command :
+
+```
+python main.py <input file path> [output file path] [--input-type {p,d,a}] [--output-type {d,a,e}] [--program-input PROGRAM_INPUT] [--program-output PROGRAM_OUTPUT] [--format {char,number}]
+```
+
+Where the parameters are :
+ - `input file path` : mandatory argument containing the input of the interpreter (either Fython, deltas or assembly) ;
+ - `output file path` : the output of the interpreter, mandatory if the code is not executed, but outputted to another format ;
+ - `--input-type` (or `-i`) : the type of the input. Either `p` for a Fython/Python code (default), `d` for a list of deltas or `a` for assembly ;
+ - `--output-type` (or `-o`) : the type of the output. Either `d` for the list of deltas, `a` for the assembly or `e` to execute the code (default) ;
+ - `--program-input` (or `-I`) : if the program is executed, where it should look for its input. If not provided, will use stdin ;
+ - `--program-output` (or `-O`) : if the program is executed, where it should print its output. If not provided, will use stdout ;
+ - `--format` (or `-f`) : if the program is executed, the format of the output and input. Either `char` (default) to print and read ASCII characters, or `number` to print and read base 10 numbers.
+
+### Formats table
+
+This table sums up the different format combinations. The empty set marks the default behavior.
+
+|Input \ Output|Fython|Deltas|Assembly|Execution|
+|:-:|:-:|:-:|:-:|:-:|
+|Fython| X | `-o d` | `-o a` | $\emptyset$ |
+|Deltas| X | `-i d -o d` | `-i d -o a` | `-i d` |
+|Assembly| X |  `-i a -o d` | `-i a -o a` | `-i a` |
+|Execution| X | X | X | X |
+
+### Delta input format
+
+When the input is a list of deltas, it should respect the regex : 
+```regex
+(-?[0-9]+)[^0-9-]+(-?[0-9]+)
+```
+This means two numbers, possibly negative, separated by anything other than digits or dashes. Everything which is not of this format will be considered a comment.
+
+### Assembly input format
+
+The interpreter will match as an instruction anything respecting one of those regexes :
+```regex
+^\s*([a-z]+)
+^\s*([a-z]+)\s*(-?[0-9]+)
+```
+This means any number of whitespace after the start of the line, followed by lower case letters, then optionally whitespaces and a number, possibly negative. This means everything not starting with a letter will be considered a comment.
+However, default value will not be considered contrary to Fython or deltas input, meaning e.g. a line just containing `push` will stop the execution.
+
+### Formats example
+
+All the formats are taken from the `test_files` folder.
+
+Fython code :
+```python
+a= 2
+if a:
+    a = 3
+    b = "This is a very long" * a
+    print(b, sep=" ", end="")
+a = len(b) * 2
+```
+
+The equivalent deltas :
+
+```txt
+di	dw
+0	0
+1	1
+0	6
+0	-5
+-1	1
+```
+
+The equivalent pseudo-assembly :
+
+```txt
+push 65
+print 1
+```
+
+And the output of the intrepreter :
+
+```bash
+> python main.py test_files\python.py
+Program execution:
+==========
+A
+==========
+Execution complete!
+```
+
+Finally, if converting from assembly to deltas, the instruction corresponding to the deltas will be printed in comments around it :
+```txt
+di	dw
+
+# push 65	
+1	1
+0	6
+0	5
+
+# print 1	
+-1	1
+0	1
+```
+
 ## Examples
+
+
