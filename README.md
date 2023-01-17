@@ -4,7 +4,7 @@
 
 The **Fython** (or "Faux Python") is a programming language which can be hidden in a regular Python code. It works by counting the indentation level and the number of whitespaces of the code. 
 
-More precisely, if you define $I_n$ and $w_n$ ($n \geq 0$) as respectively of indentation level and the number of whitespaces group (so " " is the same as "      ") of every line which is neither empty nor only a comment ; then you can define the "deltas" of the code as :
+More precisely, if you define $I_n$ and $w_n$ ( $n \geq 0$ ) as respectively of indentation level and the number of whitespaces group (so " " is the same as "      ") of every line which is neither empty nor only a comment ; then you can define the "deltas" of the code as :
 
 $\Delta I_n = I_n - I_{n-1}$ and $\Delta w_n = w_n - w_{n-1}$
 
@@ -40,13 +40,13 @@ This is an integer stack-based language, and it also has a zero flag, which is r
 
 Every blank case in this table means a NOP for now, but can be used for a new operation in the future. If $\Delta I < -1$ , there are no instructions.
 
-If $|\Delta w| > 9$ , then $\Delta w = sign(\Delta w) \cdot (|\Delta w_n| \% 10) $ .
+If $|\Delta w| > 9$ , then $ \Delta w = sign(\Delta w) \cdot (|\Delta w_n| \text{ mod } 10) $ .
 
 This means that 15 is considered as 5, and -13 as -3.
 
 ### Instructions details
 
-|Instruction|Description|Has a parameter $v$ ?|Stack does not have enough elements ?|Invalid $v$ |Default value ($v$ not specified)|
+|Instruction|Description|Has a parameter $v$ ?|Stack does not have enough elements ?|Invalid $v$ |Default value ( $v$ not specified)|
 |:-:|:-:|:-:|:-:|:-:|:-:|
 |NOP|Do nothing.| / | / | / | / |
 |PUSH|Add $v$ onto the stack.|The value to add to the stack.| / | / | 0 |
@@ -101,9 +101,11 @@ This means a comment cannot occur after an instruction needing a parameter or af
 
 ## Interpreter
 
-This repo contains an interpreter for this language. During execution from the Fython code (which is really Python code), it converts it first to a list of deltas, then to a pseudo-assembly which only contains the instructions and their parameters. This assembly is then executed. 
+This repo contains an Python interpreter for this language. During execution from the Fython code (which is really Python code), it converts it first to a list of deltas, then to a pseudo-assembly which only contains the instructions and their parameters. This assembly is then executed. 
 
 This means the interpreter can output to any of this formats instead of executing the code, and can accept deltas or assembly to execute them, making it easier to create a working code.
+
+The interpreter definitely works with Python 3.9.13, but I have not tested earlier versions.
 
 ### Usage
 
