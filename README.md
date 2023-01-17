@@ -63,8 +63,8 @@ This means that 15 is considered as 5, and -13 as -3.
 |COPY|Pop the top element of the stack, and push $v$ copy of it.|Number of copy to add to the stack.|Copy 0|$v \leq 0$ : pop the last value without adding it back.| 2 |
 |JMPZ|Move the instruction pointer $v$ instruction away (not counting NOP and comments) if the zero flag is set.|Number of instructions to move (can be negative to jump backwards).| / |$v = 0$ : go the next instruction.| 1 |
 |JMPNZ|Same thing, but if the zero flag is not raised.|Idem.| / |$v = 0$ : go the next instruction.| 1 |
-|PLACE|Pop the top element of the stack and place it at the specified location.|Where to put the element : 0 is at the same place, > 0 is couting down from the top of the stack, < 0 is counting up from the bottom of the stack [-1 is the bottom]).|Add 0 to the stack.| / | 1 |
-|PICK|Pop the element at the specified location and add it onto the stack.|Where to take the element from : 0 is at the same place, > 0 is couting down from the top of the stack, < 0 is counting up from the bottom of the stack [-1 is the bottom]).|Add 0 to the stack.| / | 1 |
+|PLACE|Pop the top element of the stack and place it at the specified location.|Where to put the element : 0 is at the same place, > 0 is couting down from the top of the stack, < 0 is counting up from the bottom of the stack [-1 is the bottom]).|Add 0 to the stack.| $\Delta w$ is outside the stack : clamp at the top or bottom | 1 |
+|PICK|Pop the element at the specified location and add it onto the stack.|Where to take the element from : 0 is at the same place, > 0 is couting down from the top of the stack, < 0 is counting up from the bottom of the stack [-1 is the bottom]).|Add 0 to the stack.| $\Delta w$ is outside the stack : clamp at the top or bottom | 1 |
 
 ### Describing a parameter
 

@@ -389,8 +389,14 @@ class Interpreter:
                     # so index = - (arg + 1)
                     if argument >= 0:
                         index = len(stack) - argument - 1
+                        # Clamp the index to the bottom of the stack
+                        if index < 0:
+                            index = 0
                     else:
                         index = - argument - 1
+                        # Clamp the index to the top of the stack
+                        if index >= len(stack):
+                            index = len(stack) - 1
 
                     stack.append(stack.pop(index))
                     # Zero flag is assigned by the moved element
