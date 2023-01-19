@@ -112,7 +112,7 @@ The interpreter definitely works with Python 3.9.13, but I have not tested earli
 Once cloned, the interpreter is used with the following command :
 
 ```
-python main.py <input file path> [output file path] [--input-type {p,d,a}] [--output-type {d,a,e}] [--program-input PROGRAM_INPUT] [--program-output PROGRAM_OUTPUT] [--format {char,number}]
+python main.py <input file path> [output file path] [--input-type {p,d,a}] [--output-type {d,a,e}] [--program-input PROGRAM_INPUT] [--program-output PROGRAM_OUTPUT] [--format {char,number}] [--stack]
 ```
 
 Where the parameters are :
@@ -122,7 +122,8 @@ Where the parameters are :
  - `--output-type` (or `-o`) : the type of the output. Either `d` for the list of deltas, `a` for the assembly or `e` to execute the code (default) ;
  - `--program-input` (or `-I`) : if the program is executed, where it should look for its input. If not provided, will use stdin ;
  - `--program-output` (or `-O`) : if the program is executed, where it should print its output. If not provided, will use stdout ;
- - `--format` (or `-f`) : if the program is executed, the format of the output and input. Either `char` (default) to print and read ASCII characters, or `number` to print and read base 10 numbers.
+ - `--format` (or `-f`) : if the program is executed, the format of the output and input. Either `char` (default) to print and read ASCII characters, or `number` to print and read base 10 numbers ;
+ - `--stack` (or `-s`) : if the program is executed, will print the stack and the zero flag at the end. No parameters.
 
 **Important note** : when the input is a Fython code, the underlying Python code should be at least syntactically correct, or the interpreter will stop execution.
 
@@ -258,7 +259,7 @@ print 1
 pick -2
 add
     # Loop
-jmpnz -13
+jmpnz -9
 ```
 
 Output :

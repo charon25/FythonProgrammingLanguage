@@ -21,6 +21,7 @@ def read_arguments() -> argparse.Namespace:
     parser.add_argument('--program-input', '-I', help="File to read the program input from if it was executed. If not provided, will use stdin.")
 
     parser.add_argument('--format', '-f', choices=['char', 'number'], default='char', help="The format of the output and input of the program if it was executed. 'char' to write chars with corresponding Unicode code, 'number' to write the digits directly. Default 'char'.")
+    parser.add_argument('--stack', '-s', action='store_true', help='If in execute mode, print the stack at the end of the execution.')
 
     return parser.parse_args()
 
@@ -53,7 +54,7 @@ if __name__ == '__main__':
     writer = get_program_output(arguments.program_output)
 
     interpreter = Interpreter(file_out=writer, file_in=reader, output_format=arguments.format)
-    manager = InterpreterManager(interpreter, arguments.input_type, arguments.output_type)
+    manager = InterpreterManager(interpreter, arguments.input_type, arguments.output_type, arguments.stack)
 
     try:
         manager.execute(arguments.input_path, arguments.output_path)

@@ -21,10 +21,11 @@ class InterpreterManagerError(Exception):
 
 
 class InterpreterManager():
-    def __init__(self, interpreter: Interpreter, input_type: str, output_type: str) -> None:
+    def __init__(self, interpreter: Interpreter, input_type: str, output_type: str, print_stack: bool = False) -> None:
         self.interpreter = interpreter
         self.input_type = InputType(input_type)
         self.output_type = OutputType(output_type)
+        self.print_stack = print_stack
 
     ### INPUT READING
     def read_file(self, input_path: str) -> str:
@@ -72,6 +73,14 @@ class InterpreterManager():
             raise InterpreterManagerError(f"can't open output file '{output_path}'.")
 
 
+
+    def print_stack_and_zero_flag(self, stack: list[int], zero_flag: bool):
+        print()
+        print('Stack (from bottom to top) :')
+        print(', '.join(map(str, stack)))
+        print(f'\nZero flag : {"not " if not zero_flag else ""}raised\n')
+
+
     ### EXECUTION
     def _python_to_deltas(self, input_path: str, output_path: str) -> None:
         python_code = self.read_python(input_path)
@@ -88,7 +97,7 @@ class InterpreterManager():
         python_code = self.read_python(input_path)
         deltas = self.interpreter.python_code_to_deltas(python_code)
         assembly = self.interpreter.deltas_to_assembly(deltas)
-        self.interpreter.execute_assembly(assembly)
+        return self.interpreter.execute_assembly(assembly)
 
     def _deltas_to_deltas(self, input_path: str, output_path: str) -> None:
         deltas = self.read_deltas(input_path)
@@ -102,7 +111,7 @@ class InterpreterManager():
     def _deltas_to_execute(self, input_path: str) -> None:
         deltas = self.read_deltas(input_path)
         assembly = self.interpreter.deltas_to_assembly(deltas)
-        self.interpreter.execute_assembly(assembly)
+        return self.interpreter.execute_assembly(assembly)
 
     def _assembly_to_deltas(self, input_path: str, output_path: str) -> None:
         assembly = self.read_assembly(input_path)
@@ -115,7 +124,7 @@ class InterpreterManager():
 
     def _assembly_to_execute(self, input_path: str) -> None:
         assembly = self.read_assembly(input_path)
-        self.interpreter.execute_assembly(assembly)
+        return self.interpreter.execute_assembly(assembly)
 
 
     def execute(self, input_path: str, output_path: str = None):
@@ -141,8 +150,10 @@ class InterpreterManager():
         if self.output_type == OutputType.EXECUTE:
             if self.interpreter.file_out is sys.stdout:
                 print("Program execution:\n==========")
-            function(input_path)
+            stack, zero_flag = function(input_path)
             print("\n==========\nExecution complete!")
+            if self.print_stack:
+                self.print_stack_and_zero_flag(stack, zero_flag)
         else:
             function(input_path, output_path)
             print(f"Conversion from {self.input_type.name} to {self.output_type.name} successful!")

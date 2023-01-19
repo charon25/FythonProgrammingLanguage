@@ -1,4 +1,3 @@
-
     # Read number of terms N
 read 1
 push 1
@@ -19,4 +18,4 @@ print 1
 pick -2
 add
     # Loop
-jmpnz -13
+jmpnz -9
