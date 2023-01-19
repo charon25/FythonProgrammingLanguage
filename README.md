@@ -99,6 +99,10 @@ POW(n, -m) = DIV(1, pow(n, m))
 A comment is started with a delta containing $\Delta I = 0$ and $\Delta w \neq 0$ . If $\Delta w > 0$, then the next $\Delta w$ deltas are ignored. If $\Delta w < 0$ , then every deltas until another $\Delta w < 0$ are ignored.
 This means a comment cannot occur after an instruction needing a parameter or after a parameter.
 
+### Turing completeness
+
+As I created a (hopefully) correct [Brainfuck to Fython interpreter](https://github.com/charon25/Brainfuck2Fython), this means Fython should be Turing complete.
+
 ## Interpreter
 
 This repo contains an Python interpreter for this language. During execution from the Fython code (which is really Python code), it converts it first to a list of deltas, then to a pseudo-assembly which only contains the instructions and their parameters. This assembly is then executed. 
@@ -116,7 +120,7 @@ python main.py <input file path> [output file path] [--input-type {p,d,a}] [--ou
 ```
 
 Where the parameters are :
- - `input file path` : mandatory argument containing the input of the interpreter (either Fython, deltas or assembly) ;
+ - `input file path` : required argument containing the input of the interpreter (either Fython, deltas or assembly) ;
  - `output file path` : the output of the interpreter, mandatory if the code is not executed, but outputted to another format ;
  - `--input-type` (or `-i`) : the type of the input. Either `p` for a Fython/Python code (default), `d` for a list of deltas or `a` for assembly ;
  - `--output-type` (or `-o`) : the type of the output. Either `d` for the list of deltas, `a` for the assembly or `e` to execute the code (default) ;
