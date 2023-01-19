@@ -89,10 +89,10 @@ PLACE and PICK raise it according to the moved value.
 
 Let's define three integers : $n \in \mathbb{Z}$, $p \geq 0$ and $m > 0$. Then :
 
-POW(n, p) = $n^p$ (usual definition)
-POW(0, 0) = 1
-POW(0, -m) is a runtime error, stopping the execution.
-POW(n, -m) = DIV(1, pow(n, m))
+ - POW(n, p) = $n^p$ (usual definition)
+ - POW(0, 0) = 1
+ - POW(0, -m) is a runtime error, stopping the execution.
+ - POW(n, -m) = DIV(1, pow(n, m))
 
 ### Comments
 
