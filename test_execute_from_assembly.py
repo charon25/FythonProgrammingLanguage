@@ -95,9 +95,9 @@ class TestExecuteFromAssembly(unittest.TestCase):
         class Reader:
             def __init__(self) -> None:
                 self.i = 0
-            def read(self, _) -> int:
+            def readline(self) -> int:
                 self.i += 1
-                return self.i
+                return f'{self.i}\n'
         class Writer:
             def __init__(self) -> None:
                 self.values = []
@@ -169,8 +169,8 @@ class TestExecuteFromAssembly(unittest.TestCase):
                 self.value = 0
             def set_value(self, value: int):
                 self.value = value
-            def read(self, _) -> int:
-                return self.value
+            def readline(self) -> int:
+                return f'{self.value}\n'
         class Writer:
             def __init__(self) -> None:
                 self.values = []
@@ -200,4 +200,6 @@ class TestExecuteFromAssembly(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    # unittest.main()
+    a= TestExecuteFromAssembly()
+    a.test_execute_io_format_number()
