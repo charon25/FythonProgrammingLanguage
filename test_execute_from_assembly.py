@@ -200,6 +200,4 @@ class TestExecuteFromAssembly(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    # unittest.main()
-    a= TestExecuteFromAssembly()
-    a.test_execute_io_format_number()
+    unittest.main()
